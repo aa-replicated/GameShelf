@@ -4,10 +4,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 
 	"github.com/gameshelf/gameshelf/internal/db"
 	"github.com/go-chi/chi/v5"
 )
+
+var hexColorRE = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
 
 // GET /admin — admin panel
 func (s *Server) adminHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +61,10 @@ func (s *Server) updateBrandingHandler(w http.ResponseWriter, r *http.Request) {
 
 	if name == "" || primary == "" || secondary == "" {
 		http.Error(w, "all fields required", http.StatusBadRequest)
+		return
+	}
+	if !hexColorRE.MatchString(primary) || !hexColorRE.MatchString(secondary) {
+		http.Error(w, "invalid color format (use #RRGGBB)", http.StatusBadRequest)
 		return
 	}
 	if err := db.UpdateSiteBranding(s.db, name, primary, secondary); err != nil {

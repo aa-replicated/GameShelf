@@ -28,6 +28,7 @@ type submitScoreResponse struct {
 func (s *Server) submitScoreHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	r.Body = http.MaxBytesReader(w, r.Body, 8192)
 	var req submitScoreRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -37,6 +38,28 @@ func (s *Server) submitScoreHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Game == "" || req.PlayerName == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(submitScoreResponse{Error: "game and player_name required"})
+		return
+	}
+	if len(req.PlayerName) > 50 {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(submitScoreResponse{Error: "player_name too long (max 50)"})
+		return
+	}
+
+	game, err := db.GetGame(s.db, req.Game)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(submitScoreResponse{Error: "database error"})
+		return
+	}
+	if game == nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(submitScoreResponse{Error: "game not found"})
+		return
+	}
+	if !game.Enabled {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(submitScoreResponse{Error: "game is disabled"})
 		return
 	}
 

@@ -74,17 +74,16 @@ func scanGames(rows *sql.Rows) ([]Game, error) {
 
 // --- Scores ---
 
-// FindOrCreatePlayer looks up a player by display_name, creating one if not found.
+// FindOrCreatePlayer upserts a player by display_name and returns the id.
 func FindOrCreatePlayer(d *sql.DB, displayName string) (int, error) {
 	var id int
-	err := d.QueryRow(`SELECT id FROM players WHERE display_name=$1 ORDER BY created_at DESC LIMIT 1`, displayName).Scan(&id)
-	if err == sql.ErrNoRows {
-		err = d.QueryRow(`INSERT INTO players (display_name) VALUES ($1) RETURNING id`, displayName).Scan(&id)
-	}
-	if err != nil {
-		return 0, fmt.Errorf("find/create player: %w", err)
-	}
-	return id, nil
+	err := d.QueryRow(`
+		INSERT INTO players (display_name)
+		VALUES ($1)
+		ON CONFLICT (display_name) DO UPDATE SET display_name = EXCLUDED.display_name
+		RETURNING id
+	`, displayName).Scan(&id)
+	return id, err
 }
 
 // InsertScore saves a score record and returns the new score's ID.

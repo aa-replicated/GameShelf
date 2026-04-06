@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS games (
 -- Players: reader accounts (display names only)
 CREATE TABLE IF NOT EXISTS players (
     id           SERIAL PRIMARY KEY,
-    display_name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL UNIQUE,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 

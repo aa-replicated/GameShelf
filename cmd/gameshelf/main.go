@@ -69,8 +69,15 @@ func main() {
 	}
 
 	addr := ":" + cfg.Port
-	log.Printf("GameShelf listening on %s", addr)
-	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {
+	log.Printf("listening on %s", addr)
+	httpSrv := &http.Server{
+		Addr:         addr,
+		Handler:      srv.Handler(),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

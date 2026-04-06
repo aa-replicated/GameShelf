@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/subtle"
 	"net/http"
 )
 
@@ -13,19 +14,19 @@ func (s *Server) adminAuthMiddleware(next http.Handler) http.Handler {
 		secret := s.cfg.AdminSecret
 
 		// Check cookie
-		if c, err := r.Cookie("admin_token"); err == nil && c.Value == secret {
+		if c, err := r.Cookie("admin_token"); err == nil && subtle.ConstantTimeCompare([]byte(c.Value), []byte(secret)) == 1 {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		// Check query param
-		if r.URL.Query().Get("token") == secret {
+		if token := r.URL.Query().Get("token"); subtle.ConstantTimeCompare([]byte(token), []byte(secret)) == 1 {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		// Check Authorization header
-		if r.Header.Get("Authorization") == "Bearer "+secret {
+		if token := r.Header.Get("Authorization"); subtle.ConstantTimeCompare([]byte(token), []byte("Bearer "+secret)) == 1 {
 			next.ServeHTTP(w, r)
 			return
 		}

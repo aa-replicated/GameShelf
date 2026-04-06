@@ -9,6 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const maxLeaderboardEntries = 1000
+
 // Client wraps Redis for leaderboard operations.
 type Client struct {
 	rdb *redis.Client
@@ -57,6 +59,10 @@ func (c *Client) AddScore(ctx context.Context, gameSlug, playerName string, scor
 	if err != nil {
 		return 1, nil // non-fatal: return 1 if rank lookup fails
 	}
+
+	// Trim to keep only top N entries
+	c.rdb.ZRemRangeByRank(ctx, key, 0, -(maxLeaderboardEntries+1))
+
 	return rank + 1, nil
 }
 
