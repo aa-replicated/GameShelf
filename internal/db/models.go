@@ -1,0 +1,33 @@
+package db
+
+import "time"
+
+type Site struct {
+	ID             int
+	Name           string
+	LogoURL        string
+	PrimaryColor   string
+	SecondaryColor string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type Game struct {
+	ID          int
+	Slug        string
+	Name        string
+	Description string
+	Enabled     bool
+	MinPlayers  int
+	MaxPlayers  int
+	CreatedAt   time.Time
+}
+
+type Score struct {
+	ID         int
+	PlayerID   int
+	PlayerName string
+	GameSlug   string
+	Score      int
+	PlayedAt   time.Time
+}
