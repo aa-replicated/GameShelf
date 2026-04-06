@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"database/sql"
 	"embed"
 	"fmt"
@@ -18,23 +19,45 @@ import (
 type Server struct {
 	db       *sql.DB
 	lb       *leaderboard.Client
-	tmpl     *template.Template
+	tmpls    map[string]*template.Template
 	staticFS fs.FS
 	cfg      config.Config
 }
 
-// NewServer constructs a Server, parsing templates from the embedded FS.
+// pageNames lists the templates that can be rendered.
+var pageNames = []string{"index.html", "game.html", "leaderboard.html", "admin.html"}
+
+// NewServer constructs a Server, parsing each page template together with base.html.
 func NewServer(db *sql.DB, lb *leaderboard.Client, templatesFS embed.FS, staticFS embed.FS, cfg config.Config) (*Server, error) {
-	tmpl, err := template.ParseFS(templatesFS, "templates/*.html")
-	if err != nil {
-		return nil, fmt.Errorf("parsing templates: %w", err)
+	tmpls := make(map[string]*template.Template, len(pageNames))
+	for _, page := range pageNames {
+		t, err := template.ParseFS(templatesFS, "templates/base.html", "templates/"+page)
+		if err != nil {
+			return nil, fmt.Errorf("parsing template %s: %w", page, err)
+		}
+		tmpls[page] = t
 	}
-	// Strip the "static" prefix so URL /static/games/snake.js maps to games/snake.js in the FS
 	stripped, err := fs.Sub(staticFS, "static")
 	if err != nil {
 		return nil, fmt.Errorf("sub static fs: %w", err)
 	}
-	return &Server{db: db, lb: lb, tmpl: tmpl, staticFS: stripped, cfg: cfg}, nil
+	return &Server{db: db, lb: lb, tmpls: tmpls, staticFS: stripped, cfg: cfg}, nil
+}
+
+// render executes a named template with buffering to prevent partial responses.
+func (s *Server) render(w http.ResponseWriter, name string, data PageData) {
+	t, ok := s.tmpls[name]
+	if !ok {
+		http.Error(w, "unknown template: "+name, http.StatusInternalServerError)
+		return
+	}
+	var buf bytes.Buffer
+	if err := t.ExecuteTemplate(&buf, name, data); err != nil {
+		http.Error(w, "template error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	buf.WriteTo(w) //nolint:errcheck
 }
 
 // Handler builds and returns the root http.Handler.

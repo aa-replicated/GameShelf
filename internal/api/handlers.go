@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"log"
 	"net/http"
 
@@ -42,17 +41,6 @@ func (s *Server) pageBase(r *http.Request) PageData {
 		SecondaryColor: site.SecondaryColor,
 		Site:           site,
 	}
-}
-
-// render executes a named template with the given data.
-func (s *Server) render(w http.ResponseWriter, name string, data PageData) {
-	var buf bytes.Buffer
-	if err := s.tmpl.ExecuteTemplate(&buf, name, data); err != nil {
-		http.Error(w, "template error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	buf.WriteTo(w) //nolint:errcheck
 }
 
 // GET / — game library landing page
