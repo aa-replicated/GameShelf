@@ -51,14 +51,10 @@
     gameOver = false;
     projectile = null;
     nextColor = randomColor();
-    shooter = {color: randomColor(), angle: -Math.PI / 2};
+    shooter = {color: randomColor()};
     mouseX = SHOOTER_X;
 
-    canvas.addEventListener('mousemove', e => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      mouseX = (e.clientX - rect.left) * scaleX;
-    });
+    canvas.addEventListener('mousemove', onMouseMove);
     canvas.addEventListener('click', shoot);
 
     animId = requestAnimationFrame(loop);
@@ -80,12 +76,14 @@
     return COLORS[Math.floor(Math.random() * COLORS.length)];
   }
 
+  function onMouseMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    mouseX = (e.clientX - rect.left) * scaleX;
+  }
+
   function shoot() {
     if (projectile || gameOver) return;
-    const dx = mouseX - SHOOTER_X;
-    const dy = -(SHOOTER_Y - 30) ; // aim up
-    const angle = Math.atan2(-Math.abs(dy + 20), dx - SHOOTER_X + mouseX - SHOOTER_X);
-    // Simplified: shoot toward cursor
     const tx = mouseX, ty = 0;
     const dist = Math.hypot(tx - SHOOTER_X, ty - SHOOTER_Y);
     projectile = {
@@ -149,7 +147,7 @@
         if (d < bestDist) { bestDist = d; best = {row, col}; }
       }
     }
-    if (!best || best.row >= ROWS - 1) {
+    if (!best || bestDist > D * 1.5 || best.row >= ROWS) {
       endGame(); return;
     }
     grid[best.row][best.col] = p.color;
@@ -172,6 +170,7 @@
     // Check win
     if (grid.flat().every(c => !c)) {
       score += 200;
+      document.getElementById('snood-score').textContent = `Score: ${score}`;
       endGame(); return;
     }
   }
@@ -254,7 +253,7 @@
 
     // Aim line
     const dx = mouseX - SHOOTER_X;
-    const dy = -1;
+    const dy = -(SHOOTER_Y - 30);
     const dist = Math.hypot(dx, dy);
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.setLineDash([4, 8]);
@@ -309,6 +308,7 @@
     gameOver = true;
     cancelAnimationFrame(animId);
     canvas.removeEventListener('click', shoot);
+    canvas.removeEventListener('mousemove', onMouseMove);
     draw();
     setTimeout(() => window.GameShelf.gameOver(score), 700);
   }
