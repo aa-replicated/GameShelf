@@ -3,9 +3,10 @@ package api
 import (
 	"log"
 	"net/http"
+	"net/url"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/gameshelf/gameshelf/internal/db"
+	"github.com/go-chi/chi/v5"
 )
 
 // GET /admin — admin panel
@@ -38,12 +39,11 @@ func (s *Server) toggleGameHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
-	token := r.URL.Query().Get("token")
-	if token != "" {
-		http.Redirect(w, r, "/admin?token="+token, http.StatusSeeOther)
-	} else {
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	redirectURL := "/admin"
+	if token := r.URL.Query().Get("token"); token != "" {
+		redirectURL = "/admin?token=" + url.QueryEscape(token)
 	}
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // POST /admin/branding — update site branding
@@ -65,10 +65,9 @@ func (s *Server) updateBrandingHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
-	token := r.URL.Query().Get("token")
-	if token != "" {
-		http.Redirect(w, r, "/admin?token="+token, http.StatusSeeOther)
-	} else {
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	redirectURL := "/admin"
+	if token := r.URL.Query().Get("token"); token != "" {
+		redirectURL = "/admin?token=" + url.QueryEscape(token)
 	}
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
