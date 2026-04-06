@@ -23,6 +23,7 @@
   let found = new Set();
   let message = '';
   let messageOk = true;
+  let gameOver = false;
 
   function shuffle(s) {
     return s.split('').sort(function() { return Math.random() - 0.5; }).join('');
@@ -42,7 +43,7 @@
   function submit() {
     const word = inputValue.toUpperCase().trim();
     inputValue = '';
-    if (!word) { render(); return; }
+    if (!word || gameOver) { return; }
 
     if (found.has(word)) {
       message = 'Already found "' + word + '"!';
@@ -65,6 +66,7 @@
   }
 
   function nextRound() {
+    if (gameOver) return;
     round++;
     if (round >= ROUNDS) {
       endGame();
@@ -74,6 +76,8 @@
   }
 
   function endGame() {
+    gameOver = true;
+    render();
     setTimeout(function() { window.GameShelf.gameOver(score); }, 400);
   }
 
@@ -149,12 +153,13 @@
     });
     root.appendChild(foundEl);
 
-    // Skip button
-    const skipBtn = document.createElement('button');
-    skipBtn.textContent = round < ROUNDS - 1 ? 'Skip round →' : 'Finish';
-    skipBtn.className = 'text-xs text-gray-400 hover:text-gray-600 mt-2';
-    skipBtn.addEventListener('click', nextRound);
-    root.appendChild(skipBtn);
+    if (!gameOver) {
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = round < ROUNDS - 1 ? 'Skip round →' : 'Finish';
+      skipBtn.className = 'text-xs text-gray-400 hover:text-gray-600 mt-2';
+      skipBtn.addEventListener('click', nextRound);
+      root.appendChild(skipBtn);
+    }
   }
 
   startRound();
