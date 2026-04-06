@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  gameshelf:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://gameshelf:gameshelf@postgres:5432/gameshelf?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      ADMIN_SECRET: ${ADMIN_SECRET:-changeme}
+      SITE_NAME: ${SITE_NAME:-GameShelf}
+      PORT: "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gameshelf
+      POSTGRES_PASSWORD: gameshelf
+      POSTGRES_DB: gameshelf
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameshelf -d gameshelf"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  pgdata:
+  redisdata:
