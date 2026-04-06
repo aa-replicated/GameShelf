@@ -12,6 +12,12 @@ type Site struct {
 	UpdatedAt      time.Time
 }
 
+type Player struct {
+	ID          int
+	DisplayName string
+	CreatedAt   time.Time
+}
+
 type Game struct {
 	ID          int
 	Slug        string

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS scores (
     id        SERIAL PRIMARY KEY,
     player_id INT         NOT NULL REFERENCES players(id),
-    game_slug VARCHAR(100) NOT NULL,
+    game_slug VARCHAR(100) NOT NULL REFERENCES games(slug),
     score     INT         NOT NULL,
     played_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_scores_game_slug ON scores(game_slug);
 CREATE INDEX IF NOT EXISTS idx_scores_played_at ON scores(played_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scores_player_id ON scores(player_id);
 
 -- Seed: default site branding
 INSERT INTO sites (name, primary_color, secondary_color)
