@@ -8,10 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// MigrationsFS is set from cmd/gameshelf/assets.go via go:embed.
-var MigrationsFS embed.FS
-
-// Connect opens a PostgreSQL connection and verifies it with a ping.
+// Connect opens a PostgreSQL connection.
 func Connect(databaseURL string) (*sql.DB, error) {
 	d, err := sql.Open("postgres", databaseURL)
 	if err != nil {
@@ -22,9 +19,9 @@ func Connect(databaseURL string) (*sql.DB, error) {
 	return d, nil
 }
 
-// Migrate runs all embedded SQL migrations idempotently.
-func Migrate(d *sql.DB) error {
-	data, err := MigrationsFS.ReadFile("migrations/001_schema.sql")
+// Migrate runs the embedded SQL migration against the database.
+func Migrate(d *sql.DB, fs embed.FS) error {
+	data, err := fs.ReadFile("migrations/001_schema.sql")
 	if err != nil {
 		return fmt.Errorf("reading migration: %w", err)
 	}
