@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -44,10 +46,13 @@ func (s *Server) pageBase(r *http.Request) PageData {
 
 // render executes a named template with the given data.
 func (s *Server) render(w http.ResponseWriter, name string, data PageData) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := s.tmpl.ExecuteTemplate(w, name, data); err != nil {
+	var buf bytes.Buffer
+	if err := s.tmpl.ExecuteTemplate(&buf, name, data); err != nil {
 		http.Error(w, "template error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	buf.WriteTo(w) //nolint:errcheck
 }
 
 // GET / — game library landing page
@@ -87,8 +92,12 @@ func (s *Server) leaderboardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	entries, err := s.lb.TopScores(r.Context(), slug, 50)
 	if err != nil {
+		log.Printf("leaderboard redis fallback for %s: %v", slug, err)
 		// Fallback to DB if Redis unavailable
-		dbScores, _ := db.GetTopScores(s.db, slug, 50)
+		dbScores, dbErr := db.GetTopScores(s.db, slug, 50)
+		if dbErr != nil {
+			log.Printf("leaderboard db fallback also failed for %s: %v", slug, dbErr)
+		}
 		entries = make([]leaderboard.Entry, len(dbScores))
 		for i, sc := range dbScores {
 			entries[i] = leaderboard.Entry{Rank: i + 1, PlayerName: sc.PlayerName, Score: sc.Score}
