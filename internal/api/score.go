@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/gameshelf/gameshelf/internal/db"
 	"github.com/gameshelf/gameshelf/internal/leaderboard"
+	"github.com/go-chi/chi/v5"
 )
 
 type submitScoreRequest struct {
@@ -42,11 +43,13 @@ func (s *Server) submitScoreHandler(w http.ResponseWriter, r *http.Request) {
 	// Persist to PostgreSQL
 	playerID, err := db.FindOrCreatePlayer(s.db, req.PlayerName)
 	if err != nil {
+		log.Printf("submitScore: find/create player %q: %v", req.PlayerName, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(submitScoreResponse{Error: "db error"})
 		return
 	}
 	if _, err := db.InsertScore(s.db, playerID, req.Game, req.Score); err != nil {
+		log.Printf("submitScore: insert score game=%s player=%d: %v", req.Game, playerID, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(submitScoreResponse{Error: "db error"})
 		return
@@ -69,11 +72,13 @@ func (s *Server) getScoresHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	entries, err := s.lb.TopScores(ctx, slug, 50)
 	if err != nil {
+		log.Printf("getScores: redis fallback for %s: %v", slug, err)
 		// Fallback to DB
 		dbScores, dbErr := db.GetTopScores(s.db, slug, 50)
 		if dbErr != nil {
+			log.Printf("getScores: db fallback also failed for %s: %v", slug, dbErr)
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": "unavailable"})
+			json.NewEncoder(w).Encode(submitScoreResponse{Error: "unavailable"})
 			return
 		}
 		entries = make([]leaderboard.Entry, len(dbScores))
