@@ -1,0 +1,106 @@
+{{ define "game.html" }}
+{{ template "base.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <a href="/" class="text-gray-400 hover:text-gray-600 text-sm mb-1 block">← Game Library</a>
+    <h1 class="text-3xl font-extrabold text-gray-900">{{ .Game.Name }}</h1>
+    <p class="text-gray-500 mt-1">{{ .Game.Description }}</p>
+  </div>
+  <a href="/leaderboard/{{ .Game.Slug }}"
+     class="text-sm font-medium text-gray-500 hover:text-gray-800 flex items-center gap-1">
+    🏆 Leaderboard
+  </a>
+</div>
+
+<!-- Game container -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8">
+  <div id="game-root"
+       data-slug="{{ .Game.Slug }}"
+       class="flex flex-col items-center">
+    <p class="text-gray-400 text-sm py-8">Loading game...</p>
+  </div>
+</div>
+
+<!-- Score submission panel (shown by game JS when game ends) -->
+<div id="score-submit-panel" class="hidden mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+  <h2 class="text-xl font-bold text-gray-900 mb-1">Game Over!</h2>
+  <p class="text-gray-500 mb-4">Your score: <span id="final-score-display" class="font-bold text-2xl" style="color: var(--color-primary)">0</span></p>
+  <div id="score-form-area">
+    <p class="text-sm text-gray-600 mb-3">Enter your name to submit your score to the leaderboard:</p>
+    <div class="flex gap-2">
+      <input type="text" id="player-name-input"
+             placeholder="Your display name"
+             maxlength="50"
+             class="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+      <button id="submit-score-btn"
+              class="px-6 py-2 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90"
+              style="background-color: var(--color-primary)">
+        Submit
+      </button>
+    </div>
+  </div>
+  <div id="score-submitted-area" class="hidden text-center py-4">
+    <p class="text-green-600 font-semibold text-lg">✓ Score submitted!</p>
+    <p class="text-gray-500 text-sm mt-1">You ranked <strong>#<span id="score-rank-display">–</span></strong></p>
+    <div class="flex gap-3 justify-center mt-4">
+      <a href="/leaderboard/{{ .Game.Slug }}"
+         class="px-4 py-2 rounded-lg text-white text-sm font-semibold"
+         style="background-color: var(--color-primary)">View Leaderboard</a>
+      <button onclick="location.reload()"
+              class="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+        Play Again
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// GameShelf score submission bridge — used by all game scripts.
+window.GameShelf = {
+  slug: document.getElementById('game-root').dataset.slug,
+
+  // Call this when the game ends with the final score.
+  gameOver: function(score) {
+    document.getElementById('final-score-display').textContent = score;
+    document.getElementById('score-submit-panel').classList.remove('hidden');
+    document.getElementById('score-submit-panel').scrollIntoView({behavior: 'smooth'});
+  }
+};
+
+document.getElementById('submit-score-btn').addEventListener('click', function() {
+  var name = document.getElementById('player-name-input').value.trim();
+  if (!name) {
+    document.getElementById('player-name-input').focus();
+    return;
+  }
+  var score = parseInt(document.getElementById('final-score-display').textContent, 10);
+  var btn = this;
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  fetch('/api/scores', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({game: window.GameShelf.slug, player_name: name, score: score})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    document.getElementById('score-form-area').classList.add('hidden');
+    document.getElementById('score-submitted-area').classList.remove('hidden');
+    if (data.rank) {
+      document.getElementById('score-rank-display').textContent = data.rank;
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+    alert('Score submission failed. Please try again.');
+  });
+});
+</script>
+
+<script src="/static/games/{{ .Game.Slug }}.js"></script>
+{{ end }}

@@ -1,0 +1,95 @@
+{{ define "admin.html" }}
+{{ template "base.html" . }}
+{{ end }}
+
+{{ define "content" }}
+<h1 class="text-3xl font-extrabold text-gray-900 mb-8">Admin Panel</h1>
+
+<!-- Branding Section -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-4">Site Branding</h2>
+  <form method="POST" action="/admin/branding{{ if .Token }}?token={{ .Token }}{{ end }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+      <input type="text" name="name" value="{{ .SiteName }}" required
+             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+      <div class="flex items-center gap-2">
+        <input type="color" name="primary_color" value="{{ .PrimaryColor }}"
+               class="h-9 w-16 border border-gray-200 rounded cursor-pointer" />
+        <input type="text" value="{{ .PrimaryColor }}" placeholder="#3B82F6"
+               class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly />
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Secondary Color</label>
+      <div class="flex items-center gap-2">
+        <input type="color" name="secondary_color" value="{{ .SecondaryColor }}"
+               class="h-9 w-16 border border-gray-200 rounded cursor-pointer" />
+        <input type="text" value="{{ .SecondaryColor }}" placeholder="#1E40AF"
+               class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly />
+      </div>
+    </div>
+    <div class="md:col-span-3 flex justify-end">
+      <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold text-sm"
+              style="background-color: var(--color-primary)">
+        Save Branding
+      </button>
+    </div>
+  </form>
+</section>
+
+<!-- Games Management -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-4">Games</h2>
+  <div class="space-y-3">
+    {{ range .AllGames }}
+    <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+      <div>
+        <span class="font-medium text-gray-800">{{ .Name }}</span>
+        <span class="ml-2 text-xs text-gray-400 font-mono">{{ .Slug }}</span>
+      </div>
+      <form method="POST" action="/admin/games/{{ .Slug }}/toggle{{ if $.Token }}?token={{ $.Token }}{{ end }}">
+        <button type="submit"
+                class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ if .Enabled }}bg-green-100 text-green-700 hover:bg-green-200{{ else }}bg-gray-100 text-gray-500 hover:bg-gray-200{{ end }}">
+          {{ if .Enabled }}✓ Enabled{{ else }}✗ Disabled{{ end }}
+        </button>
+      </form>
+    </div>
+    {{ end }}
+  </div>
+</section>
+
+<!-- Recent Scores -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-4">Recent Scores (last 200)</h2>
+  {{ if not .DBScores }}
+  <p class="text-gray-400 text-sm">No scores recorded yet.</p>
+  {{ else }}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left px-3 py-2 text-gray-500 font-medium">Game</th>
+          <th class="text-left px-3 py-2 text-gray-500 font-medium">Player</th>
+          <th class="text-right px-3 py-2 text-gray-500 font-medium">Score</th>
+          <th class="text-right px-3 py-2 text-gray-500 font-medium">When</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range .DBScores }}
+        <tr class="border-b border-gray-50">
+          <td class="px-3 py-2 font-mono text-xs text-gray-500">{{ .GameSlug }}</td>
+          <td class="px-3 py-2 text-gray-800">{{ .PlayerName }}</td>
+          <td class="px-3 py-2 text-right font-bold text-gray-900">{{ .Score }}</td>
+          <td class="px-3 py-2 text-right text-gray-400 text-xs">{{ .PlayedAt.Format "Jan 2, 15:04" }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+</section>
+{{ end }}
