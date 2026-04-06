@@ -14,7 +14,7 @@
 
   let canvas, ctx;
   let grid;           // grid[row][col] = color | null
-  let shooter;        // {color, angle}
+  let shooter;        // {color}
   let projectile;     // {x, y, dx, dy, color} | null
   let nextColor;
   let score;
