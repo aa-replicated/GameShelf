@@ -39,6 +39,7 @@
     root.appendChild(hint);
 
     resetGame();
+    document.removeEventListener('keydown', onKey);
     document.addEventListener('keydown', onKey);
     intervalId = setInterval(tick, TICK_MS);
   }
@@ -54,10 +55,12 @@
   }
 
   function spawnFood() {
-    while (true) {
-      const f = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
-      if (!snake.some(s => s.x === f.x && s.y === f.y)) return f;
-    }
+    const free = [];
+    for (let x = 0; x < COLS; x++)
+      for (let y = 0; y < ROWS; y++)
+        if (!snake.some(function(s) { return s.x === x && s.y === y; })) free.push({x: x, y: y});
+    if (free.length === 0) { end(); return {x: 0, y: 0}; }
+    return free[Math.floor(Math.random() * free.length)];
   }
 
   function onKey(e) {
