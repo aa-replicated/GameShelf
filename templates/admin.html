@@ -84,6 +84,27 @@
   </form>
 </section>
 
+<!-- Identity Section -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-2">Player Identity</h2>
+  <p class="text-sm text-gray-500 mb-4">
+    This secret signs <code class="bg-gray-100 rounded px-1">?gs_identity=</code> tokens so your main site can
+    pass a player name to GameShelf without a login prompt. Regenerating invalidates all existing tokens.
+  </p>
+  <div class="flex items-center gap-4 mb-4">
+    <span class="font-mono text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 select-all">
+      {{ if .IdentitySecretMasked }}{{ .IdentitySecretMasked }}{{ else }}(generating…){{ end }}
+    </span>
+  </div>
+  <form method="POST" action="/admin/identity/regenerate{{ if .Token }}?token={{ .Token }}{{ end }}"
+        onsubmit="return confirm('Regenerate identity secret? All existing identity tokens will be invalidated.')">
+    <button type="submit"
+            class="px-4 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50">
+      Regenerate Secret
+    </button>
+  </form>
+</section>
+
 <!-- Games Management -->
 <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
   <h2 class="text-lg font-bold text-gray-900 mb-4">Games</h2>

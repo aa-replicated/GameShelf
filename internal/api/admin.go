@@ -1,6 +1,8 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"io"
 	"log"
 	"net/http"
@@ -32,7 +34,37 @@ func (s *Server) adminHandler(w http.ResponseWriter, r *http.Request) {
 	data.AllGames = games
 	data.DBScores = allScores
 	data.Token = r.URL.Query().Get("token") // preserve token for form actions
+
+	// Mask the identity secret for display.
+	if secret, err := s.getOrCreateIdentitySecret(); err == nil && secret != "" {
+		if len(secret) > 8 {
+			data.IdentitySecretMasked = secret[:4] + "..." + secret[len(secret)-4:]
+		} else {
+			data.IdentitySecretMasked = "****"
+		}
+	}
+
 	s.render(w, "admin.html", data)
+}
+
+// POST /admin/identity/regenerate — generate a new identity secret
+func (s *Server) regenerateIdentitySecretHandler(w http.ResponseWriter, r *http.Request) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		http.Error(w, "failed to generate secret", http.StatusInternalServerError)
+		return
+	}
+	secret := base64.RawURLEncoding.EncodeToString(b)
+	if err := db.SetSetting(s.db, "identity_secret", secret); err != nil {
+		log.Printf("admin: regenerate identity secret: %v", err)
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	redirectURL := "/admin"
+	if token := r.URL.Query().Get("token"); token != "" {
+		redirectURL = "/admin?token=" + url.QueryEscape(token)
+	}
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // POST /admin/games/:slug/toggle — enable or disable a game

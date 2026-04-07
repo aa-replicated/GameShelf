@@ -19,13 +19,15 @@ type PageData struct {
 	HasLogo         bool
 	PageTitle       string
 	Token           string // admin token, preserved across form POSTs
+	PlayerName      string // pre-filled player name from cookie / identity token
 	// Page-specific (only one populated per page)
-	Games    []db.Game
-	Game     *db.Game
-	Scores   []leaderboard.Entry
-	DBScores []db.Score
-	AllGames []db.Game
-	Site     *db.Site
+	Games                []db.Game
+	Game                 *db.Game
+	Scores               []leaderboard.Entry
+	DBScores             []db.Score
+	AllGames             []db.Game
+	Site                 *db.Site
+	IdentitySecretMasked string // shown (masked) on admin panel
 }
 
 // pageBase fills the branding fields from the DB.
@@ -72,9 +74,22 @@ func (s *Server) gameHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	// Resolve player name: identity token takes precedence over existing cookie.
+	playerName := getPlayerFromCookie(r)
+	if token := r.URL.Query().Get("gs_identity"); token != "" {
+		if secret, err := s.getOrCreateIdentitySecret(); err == nil {
+			if name, ok := verifyIdentityToken(secret, token); ok {
+				setPlayerCookie(w, name)
+				playerName = name
+			}
+		}
+	}
+
 	data := s.pageBase(r)
 	data.PageTitle = game.Name
 	data.Game = game
+	data.PlayerName = playerName
 	s.render(w, "game.html", data)
 }
 

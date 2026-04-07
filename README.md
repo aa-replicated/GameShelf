@@ -41,13 +41,14 @@ make dev
 
 All configuration is via environment variables:
 
-| Variable       | Default     | Description                          |
-|----------------|-------------|--------------------------------------|
-| `DATABASE_URL` | (required)  | PostgreSQL connection string         |
-| `REDIS_URL`    | (required)  | Redis connection string              |
-| `ADMIN_SECRET` | `changeme`  | Shared secret for /admin access      |
-| `PORT`         | `8080`      | HTTP listen port                     |
-| `SITE_NAME`    | `GameShelf` | Default site name                    |
+| Variable          | Default     | Description                                              |
+|-------------------|-------------|----------------------------------------------------------|
+| `DATABASE_URL`    | (required)  | PostgreSQL connection string                             |
+| `REDIS_URL`       | (required)  | Redis connection string                                  |
+| `ADMIN_SECRET`    | `changeme`  | Shared secret for /admin access                          |
+| `PORT`            | `8080`      | HTTP listen port                                         |
+| `SITE_NAME`       | `GameShelf` | Default site name                                        |
+| `IDENTITY_SECRET` | (auto)      | HMAC secret for identity tokens; auto-generated if unset |
 
 ## API Reference
 
@@ -58,10 +59,12 @@ All configuration is via environment variables:
 | GET    | `/leaderboard/:slug`          | View leaderboard                |
 | POST   | `/api/scores`                 | Submit a score                  |
 | GET    | `/api/scores/:slug`           | Get leaderboard JSON            |
-| GET    | `/admin`                      | Admin panel (auth required)     |
-| POST   | `/admin/games/:slug/toggle`   | Enable/disable a game           |
-| POST   | `/admin/branding`             | Update site branding            |
-| GET    | `/healthz`                    | Health check (200 OK / 503)     |
+| GET    | `/admin`                           | Admin panel (auth required)     |
+| POST   | `/admin/games/:slug/toggle`        | Enable/disable a game           |
+| POST   | `/admin/branding`                  | Update site branding            |
+| POST   | `/admin/logo`                      | Upload site logo                |
+| POST   | `/admin/identity/regenerate`       | Regenerate identity secret      |
+| GET    | `/healthz`                         | Health check (200 OK / 503)     |
 
 ### Score Submission
 
@@ -167,6 +170,50 @@ Configure GameShelf's appearance entirely through the Admin panel (`/admin`) —
 - **Secondary color** — hover states
 - **Background color** — page background
 - **Font** — System (default), Serif, or Monospace
+
+### Player Identity
+
+GameShelf uses **soft identity**: no accounts, no passwords. Players are recognised by a cookie set the first time they submit a score. If they return directly to `games.yoursite.com`, their name is pre-filled automatically.
+
+#### Passing identity from your main site
+
+If you want a logged-in user on your main site to arrive at GameShelf already named, generate a signed identity token and append it to any GameShelf link:
+
+```
+https://games.yoursite.com/games/snake?gs_identity=<token>
+```
+
+GameShelf verifies the token and sets the player-name cookie automatically. The token is HMAC-SHA256 signed and includes a 30-day expiry.
+
+**Token format** (base64url-encoded):
+
+```
+playerName|expiryUnixSeconds|hmac-sha256-hex
+```
+
+**Generating a token** (Go example):
+
+```go
+import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/base64"
+    "fmt"
+    "strconv"
+    "time"
+)
+
+func signIdentityToken(secret, playerName string) string {
+    expiry := strconv.FormatInt(time.Now().Add(30*24*time.Hour).Unix(), 10)
+    msg := playerName + "|" + expiry
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write([]byte(msg))
+    raw := msg + "|" + fmt.Sprintf("%x", mac.Sum(nil))
+    return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+```
+
+The `IDENTITY_SECRET` is displayed (masked) in the Admin panel under **Player Identity**. Copy the full secret from the database or set the `IDENTITY_SECRET` environment variable to use a fixed value. You can regenerate the secret from the Admin panel at any time — all existing tokens are immediately invalidated.
 
 ### HTTPS
 

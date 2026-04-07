@@ -83,6 +83,9 @@ func (s *Server) submitScoreHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	rank, _ := s.lb.AddScore(ctx, req.Game, req.PlayerName, req.Score)
 
+	// Remember this player in a cookie so their name is pre-filled next time.
+	setPlayerCookie(w, req.PlayerName)
+
 	json.NewEncoder(w).Encode(submitScoreResponse{OK: true, Rank: rank})
 }
 

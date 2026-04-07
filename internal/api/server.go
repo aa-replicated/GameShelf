@@ -86,6 +86,7 @@ func (s *Server) Handler() http.Handler {
 		r.Post("/admin/games/{slug}/toggle", s.toggleGameHandler)
 		r.Post("/admin/branding", s.updateBrandingHandler)
 		r.Post("/admin/logo", s.uploadLogoHandler)
+		r.Post("/admin/identity/regenerate", s.regenerateIdentitySecretHandler)
 	})
 
 	// Health

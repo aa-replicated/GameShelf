@@ -34,6 +34,7 @@
       <input type="text" id="player-name-input"
              placeholder="Your display name"
              maxlength="50"
+             value="{{ .PlayerName }}"
              class="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
       <button id="submit-score-btn"
               class="px-6 py-2 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90"
@@ -88,6 +89,8 @@ document.getElementById('submit-score-btn').addEventListener('click', function()
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
+    // Persist the name in a cookie (server also sets it, but this handles same-page reuse).
+    document.cookie = 'gs_player=' + encodeURIComponent(name) + '; path=/; max-age=' + (30*24*3600) + '; samesite=lax';
     document.getElementById('score-form-area').classList.add('hidden');
     document.getElementById('score-submitted-area').classList.remove('hidden');
     if (data.rank) {

@@ -105,6 +105,29 @@ func scanGames(rows *sql.Rows) ([]Game, error) {
 	return games, rows.Err()
 }
 
+// --- Settings ---
+
+// GetSetting retrieves a value from the settings table.
+// Returns ("", nil) if the key does not exist.
+func GetSetting(d *sql.DB, key string) (string, error) {
+	var value string
+	err := d.QueryRow(`SELECT value FROM settings WHERE key=$1`, key).Scan(&value)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return value, err
+}
+
+// SetSetting upserts a key/value pair in the settings table.
+func SetSetting(d *sql.DB, key, value string) error {
+	_, err := d.Exec(`
+		INSERT INTO settings (key, value)
+		VALUES ($1, $2)
+		ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value, updated_at=NOW()
+	`, key, value)
+	return err
+}
+
 // --- Scores ---
 
 // FindOrCreatePlayer upserts a player by display_name and returns the id.

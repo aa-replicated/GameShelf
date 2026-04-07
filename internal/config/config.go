@@ -3,11 +3,12 @@ package config
 import "os"
 
 type Config struct {
-	DatabaseURL string
-	RedisURL    string
-	AdminSecret string
-	Port        string
-	SiteName    string
+	DatabaseURL    string
+	RedisURL       string
+	AdminSecret    string
+	Port           string
+	SiteName       string
+	IdentitySecret string // optional; auto-generated and stored in DB if empty
 }
 
 func Load() Config {
@@ -24,10 +25,11 @@ func Load() Config {
 		adminSecret = "changeme"
 	}
 	return Config{
-		DatabaseURL: os.Getenv("DATABASE_URL"),
-		RedisURL:    os.Getenv("REDIS_URL"),
-		AdminSecret: adminSecret,
-		Port:        port,
-		SiteName:    siteName,
+		DatabaseURL:    os.Getenv("DATABASE_URL"),
+		RedisURL:       os.Getenv("REDIS_URL"),
+		AdminSecret:    adminSecret,
+		Port:           port,
+		SiteName:       siteName,
+		IdentitySecret: os.Getenv("IDENTITY_SECRET"),
 	}
 }
