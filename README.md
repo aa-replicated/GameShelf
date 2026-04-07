@@ -85,70 +85,92 @@ Response:
 
 ## Integrating Into an Existing Site
 
-GameShelf is designed to run as a standalone service, but it fits naturally alongside an existing site. Here are the main integration patterns.
+GameShelf runs as a **separate service with its own URL**. It is not embedded into your existing application's process or codebase — it runs alongside it, reachable at its own hostname. You then decide how to present it to your users.
 
-### Reverse Proxy with a Path Prefix
+### Step 1: Give GameShelf a URL
 
-The most common setup: route a sub-path of your existing domain to GameShelf.
+There are two ways to make GameShelf reachable:
 
-**nginx example** (games available at `https://yoursite.com/games/`):
+#### Option A: Dedicated subdomain (recommended)
 
-```nginx
-location /games/ {
-    proxy_pass http://localhost:8080/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-}
+Point a subdomain at the machine running GameShelf. This is the simplest path and works for most deployments.
+
+```
+games.yoursite.com  →  GameShelf server (port 80/443)
 ```
 
-GameShelf doesn't need any path-prefix configuration — the reverse proxy strips the prefix before forwarding.
+Set up DNS: create an A record for `games.yoursite.com` pointing at the IP of the GameShelf machine. That's it — no changes to your existing site's server.
+
+#### Option B: Route through your existing ingress or reverse proxy
+
+If you already have a reverse proxy (nginx, Caddy, Traefik, etc.) or an ingress controller in front of your infrastructure, you can add a rule that forwards traffic to the GameShelf machine.
+
+**nginx example** — route a subdomain to the GameShelf server:
+
+```nginx
+server {
+    server_name games.yoursite.com;
+
+    location / {
+        proxy_pass http://<gameshelf-server-ip>:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
 **Caddy example:**
 
 ```
-yoursite.com {
-    handle /games/* {
-        uri strip_prefix /games
-        reverse_proxy localhost:8080
-    }
-    # ... rest of your site
+games.yoursite.com {
+    reverse_proxy <gameshelf-server-ip>:80
 }
 ```
 
-### Embedding via iframe
+GameShelf doesn't need to know about your proxy — it just receives normal HTTP requests and responds to whatever hostname it receives.
 
-For lighter-weight integration — embed individual games or the full game library directly in your existing pages:
+> **Note:** GameShelf serves all routes from the root (`/`, `/games/:slug`, `/admin`, etc.). Sub-path routing (serving GameShelf at `yoursite.com/games/`) is not supported — use a dedicated hostname instead.
+
+### Step 2: Present it to your users
+
+Once GameShelf has a URL, you have two options for how users reach it:
+
+#### Direct link / subdomain
+
+Send users directly to `https://games.yoursite.com`. With white-label branding configured (logo, colors, font via the Admin panel), it looks like a natural part of your site even though it's a separate service.
+
+#### Embed via iframe
+
+Embed the full game library or individual games directly in your existing pages:
 
 ```html
-<!-- Embed the full game library -->
-<iframe src="https://games.yoursite.com/" width="100%" height="600" frameborder="0"></iframe>
+<!-- Full game library -->
+<iframe src="https://games.yoursite.com"
+        width="100%" height="700" frameborder="0"
+        allow="fullscreen"></iframe>
 
-<!-- Embed a specific game -->
-<iframe src="https://games.yoursite.com/games/snake" width="500" height="520" frameborder="0"></iframe>
+<!-- A specific game -->
+<iframe src="https://games.yoursite.com/games/snake"
+        width="500" height="540" frameborder="0"
+        allow="fullscreen"></iframe>
 ```
 
-The game pages are self-contained and render cleanly inside an iframe.
+The game pages are self-contained and render cleanly inside an iframe. Because GameShelf is on a separate origin (`games.yoursite.com`), the iframe has no access to your main site's cookies or storage — this is normal and expected browser security behavior.
 
-### Custom Styles and Logo
+### Branding
 
-Site branding is configured entirely through the Admin panel (`/admin`):
+Configure GameShelf's appearance entirely through the Admin panel (`/admin`) — no code changes or restarts required:
 
-- **Primary color** — header background and accent color
-- **Secondary color** — hover states and secondary accents
+- **Site name** — displayed in the nav bar
+- **Logo** — upload PNG, JPEG, GIF, WebP, or SVG (max 2MB); stored in the database
+- **Primary color** — header and accent color
+- **Secondary color** — hover states
 - **Background color** — page background
-- **Font** — choose System (default), Serif, or Monospace
+- **Font** — System (default), Serif, or Monospace
 
-Changes take effect immediately for all visitors — no restart required.
+### HTTPS
 
-To upload a logo, use the **Logo** section of the Admin panel. Supported formats: PNG, JPEG, GIF, WebP, SVG (max 2MB). Once uploaded, the logo appears in the navigation bar alongside the site name. The logo is stored in the database, so no file mounts or volume configuration is needed.
-
-### Routing Considerations
-
-- **All routes are served from the root** (`/`, `/games/:slug`, `/leaderboard/:slug`, `/admin`, `/api/*`, `/healthz`, `/static/*`). There are no sub-path prefixes built in — your reverse proxy should strip any prefix before forwarding.
-- **Score submissions** go to `POST /api/scores`. If your existing site handles `/api` routes, make sure the proxy routes `/api/scores` and `/api/scores/*` to GameShelf.
-- **Static assets** are embedded in the binary via `go:embed` and served from `/static/`. The exception is custom CSS or logo images mounted as volumes (see above), which are served from the same path.
-- **Sessions**: GameShelf is stateless. The admin token is passed per-request (cookie, query param, or `Authorization` header). No session storage is required.
-- **HTTPS**: GameShelf listens on plain HTTP. Terminate TLS at your reverse proxy or load balancer and forward plain HTTP to GameShelf.
+GameShelf itself listens on plain HTTP. Terminate TLS at your reverse proxy, ingress controller, or load balancer and forward plain HTTP to GameShelf. If you're using the dedicated subdomain option, your proxy (nginx, Caddy, etc.) handles the certificate — Caddy does this automatically.
 
 ## Architecture
 
