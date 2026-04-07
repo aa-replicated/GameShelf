@@ -73,6 +73,7 @@ func (s *Server) Handler() http.Handler {
 	r.Get("/", s.indexHandler)
 	r.Get("/games/{slug}", s.gameHandler)
 	r.Get("/leaderboard/{slug}", s.leaderboardHandler)
+	r.Get("/logo", s.logoHandler)
 
 	// Score API
 	r.Post("/api/scores", s.submitScoreHandler)
@@ -84,6 +85,7 @@ func (s *Server) Handler() http.Handler {
 		r.Get("/admin", s.adminHandler)
 		r.Post("/admin/games/{slug}/toggle", s.toggleGameHandler)
 		r.Post("/admin/branding", s.updateBrandingHandler)
+		r.Post("/admin/logo", s.uploadLogoHandler)
 	})
 
 	// Health

@@ -129,58 +129,18 @@ For lighter-weight integration — embed individual games or the full game libra
 
 The game pages are self-contained and render cleanly inside an iframe.
 
-### Custom Styles
+### Custom Styles and Logo
 
-GameShelf uses Tailwind CSS loaded from CDN for layout and utility classes, plus two CSS custom properties for brand colors that are set on `<body>` by the template:
+Site branding is configured entirely through the Admin panel (`/admin`):
 
-```css
---primary:   #4F46E5;  /* set via admin panel or SITE_NAME env var */
---secondary: #7C3AED;
-```
+- **Primary color** — header background and accent color
+- **Secondary color** — hover states and secondary accents
+- **Background color** — page background
+- **Font** — choose System (default), Serif, or Monospace
 
-To override these from your own stylesheet, inject a `<style>` block or set them on the iframe's parent and add `allow-same-origin` if hosting on the same domain.
+Changes take effect immediately for all visitors — no restart required.
 
-For deeper style customization, add a file at `static/custom.css` and reference it in `templates/base.html`:
-
-```html
-<link rel="stylesheet" href="/static/custom.css">
-```
-
-Then mount your custom CSS file into the container:
-
-```yaml
-# docker-compose.yml
-services:
-  gameshelf:
-    volumes:
-      - ./custom.css:/app/static/custom.css:ro
-```
-
-### Logo Image
-
-To show a logo in the navigation bar instead of the plain site name, place an image file in the static directory and reference it in `templates/base.html`.
-
-**Step 1** — Mount your logo into the container:
-
-```yaml
-# docker-compose.yml
-services:
-  gameshelf:
-    volumes:
-      - ./logo.png:/app/static/logo.png:ro
-```
-
-**Step 2** — Edit `templates/base.html` to replace the text name with an `<img>` tag. Find the nav header element and change:
-
-```html
-<span class="font-bold text-xl">{{ .SiteName }}</span>
-```
-
-To:
-
-```html
-<img src="/static/logo.png" alt="{{ .SiteName }}" class="h-8">
-```
+To upload a logo, use the **Logo** section of the Admin panel. Supported formats: PNG, JPEG, GIF, WebP, SVG (max 2MB). Once uploaded, the logo appears in the navigation bar alongside the site name. The logo is stored in the database, so no file mounts or volume configuration is needed.
 
 ### Routing Considerations
 

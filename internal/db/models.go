@@ -3,13 +3,15 @@ package db
 import "time"
 
 type Site struct {
-	ID             int
-	Name           string
-	LogoURL        string
-	PrimaryColor   string
-	SecondaryColor string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID               int
+	Name             string
+	PrimaryColor     string
+	SecondaryColor   string
+	BackgroundColor  string
+	FontFamily       string
+	HasLogo          bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type Player struct {

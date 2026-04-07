@@ -9,18 +9,51 @@ import (
 // --- Site ---
 
 func GetSite(d *sql.DB) (*Site, error) {
-	row := d.QueryRow(`SELECT id, name, COALESCE(logo_url,''), primary_color, secondary_color, created_at, updated_at FROM sites LIMIT 1`)
+	row := d.QueryRow(`
+		SELECT id, name, primary_color, secondary_color,
+		       background_color, font_family,
+		       logo_data IS NOT NULL AS has_logo,
+		       created_at, updated_at
+		FROM sites LIMIT 1`)
 	var s Site
-	if err := row.Scan(&s.ID, &s.Name, &s.LogoURL, &s.PrimaryColor, &s.SecondaryColor, &s.CreatedAt, &s.UpdatedAt); err != nil {
+	if err := row.Scan(&s.ID, &s.Name, &s.PrimaryColor, &s.SecondaryColor,
+		&s.BackgroundColor, &s.FontFamily, &s.HasLogo,
+		&s.CreatedAt, &s.UpdatedAt); err != nil {
 		return nil, fmt.Errorf("get site: %w", err)
 	}
 	return &s, nil
 }
 
-func UpdateSiteBranding(d *sql.DB, name, primaryColor, secondaryColor string) error {
-	_, err := d.Exec(`UPDATE sites SET name=$1, primary_color=$2, secondary_color=$3, updated_at=NOW() WHERE id=(SELECT id FROM sites LIMIT 1)`,
-		name, primaryColor, secondaryColor)
+func UpdateSiteBranding(d *sql.DB, name, primaryColor, secondaryColor, backgroundColor, fontFamily string) error {
+	_, err := d.Exec(`
+		UPDATE sites SET
+			name=$1, primary_color=$2, secondary_color=$3,
+			background_color=$4, font_family=$5, updated_at=NOW()
+		WHERE id=(SELECT id FROM sites LIMIT 1)`,
+		name, primaryColor, secondaryColor, backgroundColor, fontFamily)
 	return err
+}
+
+// UpdateLogo stores a logo image for the site.
+func UpdateLogo(d *sql.DB, data []byte, contentType string) error {
+	_, err := d.Exec(`
+		UPDATE sites SET logo_data=$1, logo_content_type=$2, updated_at=NOW()
+		WHERE id=(SELECT id FROM sites LIMIT 1)`,
+		data, contentType)
+	return err
+}
+
+// GetLogo retrieves the stored logo bytes and content type.
+// Returns nil data if no logo is set.
+func GetLogo(d *sql.DB) ([]byte, string, error) {
+	var data []byte
+	var contentType string
+	err := d.QueryRow(`SELECT logo_data, COALESCE(logo_content_type,'') FROM sites LIMIT 1`).
+		Scan(&data, &contentType)
+	if err != nil {
+		return nil, "", err
+	}
+	return data, contentType, nil
 }
 
 // --- Games ---

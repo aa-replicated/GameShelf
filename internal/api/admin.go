@@ -1,6 +1,7 @@
 package api
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -58,20 +59,86 @@ func (s *Server) updateBrandingHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	primary := r.FormValue("primary_color")
 	secondary := r.FormValue("secondary_color")
+	background := r.FormValue("background_color")
+	fontFamily := r.FormValue("font_family")
 
-	if name == "" || primary == "" || secondary == "" {
+	if name == "" || primary == "" || secondary == "" || background == "" || fontFamily == "" {
 		http.Error(w, "all fields required", http.StatusBadRequest)
 		return
 	}
-	if !hexColorRE.MatchString(primary) || !hexColorRE.MatchString(secondary) {
+	if !hexColorRE.MatchString(primary) || !hexColorRE.MatchString(secondary) || !hexColorRE.MatchString(background) {
 		http.Error(w, "invalid color format (use #RRGGBB)", http.StatusBadRequest)
 		return
 	}
-	if err := db.UpdateSiteBranding(s.db, name, primary, secondary); err != nil {
+	allowedFonts := map[string]bool{"system": true, "serif": true, "mono": true}
+	if !allowedFonts[fontFamily] {
+		http.Error(w, "invalid font family", http.StatusBadRequest)
+		return
+	}
+	if err := db.UpdateSiteBranding(s.db, name, primary, secondary, background, fontFamily); err != nil {
 		log.Printf("admin: update branding: %v", err)
 		http.Error(w, "db error", http.StatusInternalServerError)
 		return
 	}
+	redirectURL := "/admin"
+	if token := r.URL.Query().Get("token"); token != "" {
+		redirectURL = "/admin?token=" + url.QueryEscape(token)
+	}
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+}
+
+// GET /logo — serve the stored logo image
+func (s *Server) logoHandler(w http.ResponseWriter, r *http.Request) {
+	data, contentType, err := db.GetLogo(s.db)
+	if err != nil || len(data) == 0 {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	w.Write(data) //nolint:errcheck
+}
+
+// POST /admin/logo — upload a new logo image
+func (s *Server) uploadLogoHandler(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 2<<20) // 2MB
+	if err := r.ParseMultipartForm(2 << 20); err != nil {
+		http.Error(w, "file too large (max 2MB)", http.StatusBadRequest)
+		return
+	}
+	file, header, err := r.FormFile("logo")
+	if err != nil {
+		http.Error(w, "logo file required", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	contentType := header.Header.Get("Content-Type")
+	allowed := map[string]bool{
+		"image/png":     true,
+		"image/jpeg":    true,
+		"image/gif":     true,
+		"image/webp":    true,
+		"image/svg+xml": true,
+	}
+	if !allowed[contentType] {
+		http.Error(w, "unsupported image type (use PNG, JPEG, GIF, WebP, or SVG)", http.StatusBadRequest)
+		return
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("admin: read logo: %v", err)
+		http.Error(w, "read error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := db.UpdateLogo(s.db, data, contentType); err != nil {
+		log.Printf("admin: update logo: %v", err)
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+
 	redirectURL := "/admin"
 	if token := r.URL.Query().Get("token"); token != "" {
 		redirectURL = "/admin?token=" + url.QueryEscape(token)

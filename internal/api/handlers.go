@@ -11,11 +11,14 @@ import (
 
 // PageData is passed to every template render.
 type PageData struct {
-	SiteName       string
-	PrimaryColor   string
-	SecondaryColor string
-	PageTitle      string
-	Token          string // admin token, preserved across form POSTs
+	SiteName        string
+	PrimaryColor    string
+	SecondaryColor  string
+	BackgroundColor string
+	FontFamily      string
+	HasLogo         bool
+	PageTitle       string
+	Token           string // admin token, preserved across form POSTs
 	// Page-specific (only one populated per page)
 	Games    []db.Game
 	Game     *db.Game
@@ -30,16 +33,21 @@ func (s *Server) pageBase(r *http.Request) PageData {
 	site, err := db.GetSite(s.db)
 	if err != nil || site == nil {
 		return PageData{
-			SiteName:       s.cfg.SiteName,
-			PrimaryColor:   "#3B82F6",
-			SecondaryColor: "#1E40AF",
+			SiteName:        s.cfg.SiteName,
+			PrimaryColor:    "#3B82F6",
+			SecondaryColor:  "#1E40AF",
+			BackgroundColor: "#F9FAFB",
+			FontFamily:      "system",
 		}
 	}
 	return PageData{
-		SiteName:       site.Name,
-		PrimaryColor:   site.PrimaryColor,
-		SecondaryColor: site.SecondaryColor,
-		Site:           site,
+		SiteName:        site.Name,
+		PrimaryColor:    site.PrimaryColor,
+		SecondaryColor:  site.SecondaryColor,
+		BackgroundColor: site.BackgroundColor,
+		FontFamily:      site.FontFamily,
+		HasLogo:         site.HasLogo,
+		Site:            site,
 	}
 }
 

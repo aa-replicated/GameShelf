@@ -8,15 +8,26 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --color-primary: {{ .PrimaryColor }};
-      --color-secondary: {{ .SecondaryColor }};
+      --color-primary:    {{ .PrimaryColor }};
+      --color-secondary:  {{ .SecondaryColor }};
+      --color-background: {{ .BackgroundColor }};
     }
+    {{ if eq .FontFamily "serif" }}
+    body { font-family: Georgia, 'Times New Roman', serif; }
+    {{ else if eq .FontFamily "mono" }}
+    body { font-family: 'Courier New', Courier, monospace; }
+    {{ else }}
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    {{ end }}
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body style="background-color: {{ .BackgroundColor }}" class="min-h-screen flex flex-col">
   <header style="background-color: {{ .PrimaryColor }}">
     <nav class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" class="text-white text-2xl font-bold tracking-tight">{{ .SiteName }}</a>
+      <a href="/" class="text-white text-2xl font-bold tracking-tight flex items-center gap-3">
+        {{ if .HasLogo }}<img src="/logo" alt="{{ .SiteName }}" class="h-8 w-auto">{{ end }}
+        <span>{{ .SiteName }}</span>
+      </a>
       <div class="flex items-center gap-4">
         <a href="/" class="text-white/80 hover:text-white text-sm transition-colors">Games</a>
         <a href="/admin" class="text-white/60 hover:text-white/90 text-xs transition-colors">Admin</a>

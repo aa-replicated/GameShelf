@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -19,14 +20,23 @@ func Connect(databaseURL string) (*sql.DB, error) {
 	return d, nil
 }
 
-// Migrate runs the embedded SQL migration against the database.
+// Migrate runs all embedded SQL migrations in lexicographic order.
 func Migrate(d *sql.DB, fs embed.FS) error {
-	data, err := fs.ReadFile("migrations/001_schema.sql")
+	entries, err := fs.ReadDir("migrations")
 	if err != nil {
-		return fmt.Errorf("reading migration: %w", err)
+		return fmt.Errorf("reading migrations dir: %w", err)
 	}
-	if _, err := d.Exec(string(data)); err != nil {
-		return fmt.Errorf("running migration: %w", err)
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		data, err := fs.ReadFile("migrations/" + entry.Name())
+		if err != nil {
+			return fmt.Errorf("reading migration %s: %w", entry.Name(), err)
+		}
+		if _, err := d.Exec(string(data)); err != nil {
+			return fmt.Errorf("running migration %s: %w", entry.Name(), err)
+		}
 	}
 	return nil
 }

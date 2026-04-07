@@ -32,12 +32,55 @@
                class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly />
       </div>
     </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+      <div class="flex items-center gap-2">
+        <input type="color" name="background_color" value="{{ .BackgroundColor }}"
+               class="h-9 w-16 border border-gray-200 rounded cursor-pointer" />
+        <input type="text" value="{{ .BackgroundColor }}" placeholder="#F9FAFB"
+               class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono" readonly />
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Font</label>
+      <select name="font_family"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <option value="system"{{ if eq .FontFamily "system" }} selected{{ end }}>System (default)</option>
+        <option value="serif"{{ if eq .FontFamily "serif" }} selected{{ end }}>Serif</option>
+        <option value="mono"{{ if eq .FontFamily "mono" }} selected{{ end }}>Monospace</option>
+      </select>
+    </div>
     <div class="md:col-span-3 flex justify-end">
       <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold text-sm"
               style="background-color: var(--color-primary)">
         Save Branding
       </button>
     </div>
+  </form>
+</section>
+
+<!-- Logo Section -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-4">Logo</h2>
+  {{ if .HasLogo }}
+  <div class="mb-4">
+    <p class="text-sm text-gray-500 mb-2">Current logo:</p>
+    <img src="/logo" alt="Site logo" class="h-12 border border-gray-100 rounded p-1 bg-gray-50">
+  </div>
+  {{ end }}
+  <form method="POST" action="/admin/logo{{ if .Token }}?token={{ .Token }}{{ end }}" enctype="multipart/form-data" class="flex items-end gap-4">
+    <div class="flex-1">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        {{ if .HasLogo }}Replace logo{{ else }}Upload logo{{ end }}
+        <span class="text-gray-400 font-normal">(PNG, JPEG, GIF, WebP, SVG — max 2MB)</span>
+      </label>
+      <input type="file" name="logo" accept="image/*" required
+             class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+    </div>
+    <button type="submit" class="px-6 py-2 rounded-lg text-white font-semibold text-sm shrink-0"
+            style="background-color: var(--color-primary)">
+      Upload
+    </button>
   </form>
 </section>
 
