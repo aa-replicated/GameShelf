@@ -30,7 +30,7 @@ resources:
     memory: 256Mi
 
 siteName: "GameShelf"
-adminSecret: "changeme"
+adminSecret: ""  # REQUIRED — set a strong secret, e.g. --set adminSecret=... or in a values override
 
 # --- Embedded PostgreSQL (Bitnami subchart) ---
 postgresql:

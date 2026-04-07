@@ -1,4 +1,14 @@
 {{/*
+Validate required values.
+*/}}
+{{- define "gameshelf.validate" -}}
+{{- if or (empty .Values.adminSecret) (eq .Values.adminSecret "changeme") -}}
+{{- fail "adminSecret must be set to a strong secret (not empty or 'changeme')" -}}
+{{- end -}}
+{{- end }}
+{{- include "gameshelf.validate" . }}
+
+{{/*
 Expand the name of the chart.
 */}}
 {{- define "gameshelf.name" -}}
