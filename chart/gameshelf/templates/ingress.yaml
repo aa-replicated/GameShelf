@@ -1,19 +1,32 @@
-{{- if .Values.ingress.enabled -}}
+{{- $tlsMode := .Values.tls.mode | default "none" -}}
+{{- $ingressEnabled := or .Values.ingress.enabled (ne $tlsMode "none") -}}
+{{- if $ingressEnabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "gameshelf.fullname" . }}
   labels:
     {{- include "gameshelf.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
+    {{- if eq $tlsMode "auto" }}
+    cert-manager.io/cluster-issuer: {{ .Values.tls.auto.issuer | default "letsencrypt-prod" | quote }}
+    {{- end }}
+    {{- if eq $tlsMode "selfsigned" }}
+    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if ne $tlsMode "none" }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ if eq $tlsMode "manual" }}{{ .Values.tls.manual.secretName | quote }}{{ else }}{{ printf "%s-tls" (include "gameshelf.fullname" .) | quote }}{{ end }}
+  {{- else if .Values.ingress.tls }}
   tls:
     {{- range .Values.ingress.tls }}
     - hosts:
@@ -24,6 +37,18 @@ spec:
     {{- end }}
   {{- end }}
   rules:
+    {{- if ne $tlsMode "none" }}
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "gameshelf.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+    {{- else }}
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
@@ -37,5 +62,6 @@ spec:
                 port:
                   number: {{ $.Values.service.port }}
           {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}

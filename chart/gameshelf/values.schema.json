@@ -97,6 +97,48 @@
     "resources": {
       "type": "object",
       "description": "Resource requests and limits for the gameshelf container"
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Hostname for TLS ingress (required when tls.mode is not 'none')"
+        }
+      }
+    },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["none", "auto", "manual", "selfsigned"],
+          "description": "TLS mode: none, auto (cert-manager + ACME), manual (user secret), selfsigned"
+        },
+        "auto": {
+          "type": "object",
+          "properties": {
+            "issuerEmail": {
+              "type": "string",
+              "description": "Email for Let's Encrypt account (required when mode is 'auto')"
+            },
+            "issuer": {
+              "type": "string",
+              "enum": ["letsencrypt-prod", "letsencrypt-staging"],
+              "description": "Let's Encrypt issuer to use"
+            }
+          }
+        },
+        "manual": {
+          "type": "object",
+          "properties": {
+            "secretName": {
+              "type": "string",
+              "description": "Name of existing TLS secret (required when mode is 'manual')"
+            }
+          }
+        }
+      }
     }
   },
   "if": {

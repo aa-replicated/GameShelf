@@ -11,6 +11,22 @@ Validate required values.
 {{- if and (not .Values.redis.enabled) (empty .Values.externalRedis.host) -}}
 {{- fail "externalRedis.host is required when redis.enabled=false" -}}
 {{- end -}}
+{{- $tlsMode := .Values.tls.mode | default "none" -}}
+{{- if ne $tlsMode "none" -}}
+{{- if empty .Values.ingress.host -}}
+{{- fail "ingress.host is required when tls.mode is not 'none'" -}}
+{{- end -}}
+{{- end -}}
+{{- if eq $tlsMode "auto" -}}
+{{- if empty .Values.tls.auto.issuerEmail -}}
+{{- fail "tls.auto.issuerEmail is required when tls.mode is 'auto'" -}}
+{{- end -}}
+{{- end -}}
+{{- if eq $tlsMode "manual" -}}
+{{- if empty .Values.tls.manual.secretName -}}
+{{- fail "tls.manual.secretName is required when tls.mode is 'manual'" -}}
+{{- end -}}
+{{- end -}}
 {{- end }}
 {{- include "gameshelf.validate" . }}
 

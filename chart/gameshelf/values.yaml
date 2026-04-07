@@ -12,7 +12,8 @@ service:
 
 ingress:
   enabled: false
-  className: ""
+  className: "nginx"
+  host: ""  # required when tls.mode is not "none"
   annotations: {}
   hosts:
     - host: gameshelf.local
@@ -20,6 +21,23 @@ ingress:
         - path: /
           pathType: Prefix
   tls: []
+
+# TLS configuration
+tls:
+  # Options: "none", "auto", "manual", "selfsigned"
+  mode: none
+
+  # auto: cert-manager provisions a Let's Encrypt cert via HTTP01
+  auto:
+    issuerEmail: ""
+    # "letsencrypt-staging" or "letsencrypt-prod"
+    issuer: letsencrypt-prod
+
+  # manual: user provides an existing TLS secret
+  manual:
+    secretName: ""
+
+  # selfsigned: cert-manager generates a self-signed cert (no extra config needed)
 
 resources:
   requests:

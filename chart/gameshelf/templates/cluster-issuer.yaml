@@ -1,0 +1,33 @@
+{{- $tlsMode := .Values.tls.mode | default "none" -}}
+{{- if eq $tlsMode "auto" -}}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.tls.auto.issuer | default "letsencrypt-prod" }}
+  labels:
+    {{- include "gameshelf.labels" . | nindent 4 }}
+spec:
+  acme:
+    email: {{ .Values.tls.auto.issuerEmail | quote }}
+    server: {{ if eq (.Values.tls.auto.issuer | default "letsencrypt-prod") "letsencrypt-staging" -}}
+      https://acme-staging-v02.api.letsencrypt.org/directory
+    {{- else -}}
+      https://acme-v02.api.letsencrypt.org/directory
+    {{- end }}
+    privateKeySecretRef:
+      name: {{ .Values.tls.auto.issuer | default "letsencrypt-prod" }}-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: {{ .Values.ingress.className | default "nginx" | quote }}
+{{- end }}
+{{- if eq $tlsMode "selfsigned" }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  labels:
+    {{- include "gameshelf.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}
