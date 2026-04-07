@@ -1,0 +1,82 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/aa-replicated/gameshelf
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: gameshelf.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+siteName: "GameShelf"
+adminSecret: "changeme"
+
+# --- Embedded PostgreSQL (Bitnami subchart) ---
+postgresql:
+  enabled: true
+  auth:
+    database: gameshelf
+    username: gameshelf
+    password: gameshelf
+  primary:
+    persistence:
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+# --- BYO PostgreSQL ---
+externalDatabase:
+  host: ""
+  port: 5432
+  database: gameshelf
+  username: gameshelf
+  password: ""
+
+# --- Embedded Redis (Bitnami subchart) ---
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
+
+# --- BYO Redis ---
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""

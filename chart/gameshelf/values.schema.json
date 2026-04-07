@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["image"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": ["repository", "tag"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Kubernetes service type"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Service port"
+        }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable embedded PostgreSQL subchart"
+        }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable embedded Redis subchart"
+        }
+      }
+    },
+    "externalDatabase": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "External PostgreSQL host (required when postgresql.enabled is false)"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "database": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "externalRedis": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "External Redis host (required when redis.enabled is false)"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "adminSecret": {
+      "type": "string",
+      "minLength": 8,
+      "description": "Admin panel password"
+    },
+    "siteName": {
+      "type": "string",
+      "description": "Display name for the site"
+    },
+    "resources": {
+      "type": "object",
+      "description": "Resource requests and limits for the gameshelf container"
+    }
+  },
+  "if": {
+    "properties": {
+      "postgresql": {
+        "properties": {
+          "enabled": {
+            "const": false
+          }
+        }
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "externalDatabase": {
+        "required": ["host"],
+        "properties": {
+          "host": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "redis": {
+            "properties": {
+              "enabled": {
+                "const": false
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "externalRedis": {
+            "required": ["host"],
+            "properties": {
+              "host": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
