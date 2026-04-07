@@ -16,13 +16,13 @@ spec:
     spec:
       initContainers:
         - name: wait-for-postgres
-          image: busybox:1.36
+          image: registry-1.docker.io/bitnami/postgresql:latest
           command:
-            - sh
+            - bash
             - -c
             - |
               echo "Waiting for PostgreSQL at {{ include "gameshelf.postgresqlHost" . }}:{{ include "gameshelf.postgresqlPort" . }}..."
-              until nc -z -w2 {{ include "gameshelf.postgresqlHost" . }} {{ include "gameshelf.postgresqlPort" . }}; do
+              until bash -c "echo > /dev/tcp/{{ include "gameshelf.postgresqlHost" . }}/{{ include "gameshelf.postgresqlPort" . }}" 2>/dev/null; do
                 echo "PostgreSQL not ready, retrying in 2s..."
                 sleep 2
               done
