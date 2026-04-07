@@ -77,23 +77,44 @@
     startTime = Date.now();
     gameOver = false;
     render();
+    document.addEventListener('mouseup', function() { selecting = false; });
   }
 
   function cellsInLine(a, b) {
     if (!a || !b) return [];
-    const dr = Math.sign(b.r - a.r), dc = Math.sign(b.c - a.c);
+    const dr = b.r - a.r, dc = b.c - a.c;
+    // Only valid lines: horizontal, vertical, or 45-degree diagonal
+    if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return [];
+    const stepR = Math.sign(dr), stepC = Math.sign(dc);
     const cells = [];
     let r = a.r, c = a.c;
     while (true) {
       cells.push({r, c});
       if (r === b.r && c === b.c) break;
-      r += dr; c += dc;
+      r += stepR; c += stepC;
     }
     return cells;
   }
 
   function cellWord(cells) {
     return cells.map(({r, c}) => grid[r][c]).join('');
+  }
+
+  function updateHighlight() {
+    const table = document.querySelector('#game-root table');
+    if (!table) return;
+    table.querySelectorAll('td').forEach(function(cell) {
+      const r = +cell.dataset.r, c = +cell.dataset.c;
+      const isFound = [...found].some(function(w) {
+        const info = wordCellMap.get(w);
+        return info && info.some(function(cc) { return cc.r === r && cc.c === c; });
+      });
+      const isSel = selectedCells.some(function(cc) { return cc.r === r && cc.c === c; });
+      cell.className = 'w-8 h-8 text-center font-mono font-bold text-sm cursor-pointer rounded transition-colors';
+      if (isFound) cell.classList.add('bg-green-200', 'text-green-800');
+      else if (isSel) cell.classList.add('bg-blue-200', 'text-blue-800');
+      else cell.classList.add('hover:bg-gray-100');
+    });
   }
 
   function render() {
@@ -166,7 +187,7 @@
         if (!selecting) return;
         const cur = {r: +td.dataset.r, c: +td.dataset.c};
         selectedCells = cellsInLine(startCell, cur);
-        render();
+        updateHighlight();
       });
       td.addEventListener('mouseup', function() {
         if (!selecting) return;
@@ -174,7 +195,6 @@
         checkSelection();
       });
     });
-    document.addEventListener('mouseup', function() { selecting = false; });
   }
 
   function checkSelection() {
