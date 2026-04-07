@@ -251,18 +251,34 @@
       }
     }
 
-    // Aim line
-    const dx = mouseX - SHOOTER_X;
-    const dy = -(SHOOTER_Y - 30);
-    const dist = Math.hypot(dx, dy);
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.setLineDash([4, 8]);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(SHOOTER_X, SHOOTER_Y - 30);
-    ctx.lineTo(SHOOTER_X + dx / dist * 120, SHOOTER_Y - 30 + dy / dist * 120);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    // Aim line — wall-bouncing dotted line to ceiling
+    {
+      const adx = mouseX - SHOOTER_X;
+      const ady = -(SHOOTER_Y - 30);
+      const adist = Math.hypot(adx, ady);
+      if (adist > 0) {
+        let vx = adx / adist * SPEED;
+        let vy = ady / adist * SPEED;
+        let ax = SHOOTER_X, ay = SHOOTER_Y - 30;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.setLineDash([5, 8]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        // Trace up to 300 steps or until ceiling
+        for (let i = 0; i < 300; i++) {
+          ax += vx; ay += vy;
+          if (ax - R < 0) { ax = R; vx = Math.abs(vx); }
+          if (ax + R > W) { ax = W - R; vx = -Math.abs(vx); }
+          if (ay - R <= 0) { ctx.lineTo(ax, R); break; }
+          ctx.lineTo(ax, ay);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    }
 
     // Shooter
     drawBubble(SHOOTER_X, SHOOTER_Y - 30, shooter.color);
