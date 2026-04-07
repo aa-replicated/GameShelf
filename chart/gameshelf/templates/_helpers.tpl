@@ -5,6 +5,12 @@ Validate required values.
 {{- if or (empty .Values.adminSecret) (eq .Values.adminSecret "changeme") -}}
 {{- fail "adminSecret must be set to a strong secret (not empty or 'changeme')" -}}
 {{- end -}}
+{{- if and (not .Values.postgresql.enabled) (empty .Values.externalDatabase.host) -}}
+{{- fail "externalDatabase.host is required when postgresql.enabled=false" -}}
+{{- end -}}
+{{- if and (not .Values.redis.enabled) (empty .Values.externalRedis.host) -}}
+{{- fail "externalRedis.host is required when redis.enabled=false" -}}
+{{- end -}}
 {{- end }}
 {{- include "gameshelf.validate" . }}
 
