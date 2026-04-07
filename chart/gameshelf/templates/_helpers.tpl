@@ -84,24 +84,3 @@ redis://{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}
 {{- end -}}
 {{- end }}
 
-{{/*
-PostgreSQL host for init container check
-*/}}
-{{- define "gameshelf.postgresqlHost" -}}
-{{- if .Values.postgresql.enabled -}}
-{{ include "gameshelf.fullname" . }}-postgresql
-{{- else -}}
-{{ .Values.externalDatabase.host }}
-{{- end -}}
-{{- end }}
-
-{{/*
-PostgreSQL port for init container check
-*/}}
-{{- define "gameshelf.postgresqlPort" -}}
-{{- if .Values.postgresql.enabled -}}
-5432
-{{- else -}}
-{{ .Values.externalDatabase.port }}
-{{- end -}}
-{{- end }}
