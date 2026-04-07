@@ -50,10 +50,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("connecting to redis: %v", err)
 	}
-	pingCtx, pingCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer pingCancel()
-	if err := lb.Ping(pingCtx); err != nil {
-		log.Fatalf("redis ping failed: %v", err)
+	log.Println("Waiting for Redis to be ready...")
+	if err := waitForRedis(lb, 30, 2*time.Second); err != nil {
+		log.Fatalf("redis never became available: %v", err)
 	}
 	log.Println("Redis is ready.")
 
@@ -80,6 +79,23 @@ func main() {
 	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
+}
+
+// waitForRedis retries pinging Redis until available.
+func waitForRedis(lb *leaderboard.Client, maxRetries int, interval time.Duration) error {
+	for i := 1; i <= maxRetries; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		err := lb.Ping(ctx)
+		cancel()
+		if err == nil {
+			return nil
+		}
+		log.Printf("Redis not ready (attempt %d/%d): %v", i, maxRetries, err)
+		if i < maxRetries {
+			time.Sleep(interval)
+		}
+	}
+	return fmt.Errorf("redis not ready after %d attempts", maxRetries)
 }
 
 // waitForDB retries pinging the database until available.
