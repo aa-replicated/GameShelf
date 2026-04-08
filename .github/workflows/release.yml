@@ -51,6 +51,7 @@ jobs:
             --destination release/
 
       - name: Create Replicated release
+        id: create-release
         uses: replicatedhq/replicated-actions/create-release@v1.20.0
         with:
           app-slug: gameshelf
@@ -63,5 +64,6 @@ jobs:
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          release-sequence: ${{ steps.create-release.outputs.release-sequence }}
           release-version: ${{ env.VERSION }}
           channel-to: Unstable
