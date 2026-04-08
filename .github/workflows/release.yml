@@ -42,15 +42,20 @@ jobs:
             ghcr.io/aa-replicated/gameshelf:${{ env.VERSION }}
             ghcr.io/aa-replicated/gameshelf:latest
 
-      - name: Update Helm dependencies
-        run: helm dependency update chart/gameshelf
+      - name: Package Helm chart
+        run: |
+          helm dependency update chart/gameshelf
+          helm package chart/gameshelf \
+            --version ${{ env.VERSION }} \
+            --app-version ${{ env.VERSION }} \
+            --destination release/
 
       - name: Create Replicated release
         uses: replicatedhq/replicated-actions/create-release@v1.20.0
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          yaml-dir: .
+          yaml-dir: release/
           version-label: ${{ env.VERSION }}
 
       - name: Promote to Unstable
