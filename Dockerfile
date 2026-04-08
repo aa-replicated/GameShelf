@@ -15,6 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /gameshelf ./cmd/games
 
 # ---- Runtime stage ----
 FROM alpine:latest
+LABEL org.opencontainers.image.source=https://github.com/aa-replicated/GameShelf
 
 # Install CA certificates for HTTPS (if ever needed) and timezone data
 RUN apk --no-cache add ca-certificates tzdata
