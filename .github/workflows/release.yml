@@ -63,5 +63,5 @@ jobs:
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          version-label: ${{ env.VERSION }}
-          channel: Unstable
+          release-version: ${{ env.VERSION }}
+          channel-to: Unstable
