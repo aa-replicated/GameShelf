@@ -5,11 +5,14 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    outputs:
+      channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+      version-label: ${{ env.VERSION_LABEL }}
 
     steps:
       - name: Checkout
@@ -25,6 +28,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set version label
+        run: echo "VERSION_LABEL=pr-${{ github.event.pull_request.number }}-${{ github.run_number }}" >> $GITHUB_ENV
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -37,18 +43,81 @@ jobs:
         run: helm dependency update chart/gameshelf
 
       - name: Create Replicated release
-        uses: replicatedhq/replicated-actions/create-release@v1.20.0
+        id: create-release
+        uses: replicatedhq/replicated-actions/create-release@v1
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           yaml-dir: .
-          version-label: pr-${{ github.event.pull_request.number }}-${{ github.run_number }}
+          promote-channel: pr-${{ github.event.pull_request.number }}
+          version-label: ${{ env.VERSION_LABEL }}
 
-      - name: Run compatibility matrix
-        uses: replicatedhq/replicated-actions/compatibility-matrix@v1.20.0
+  compatibility-matrix:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create customer
+        id: create-customer
+        uses: replicatedhq/replicated-actions/create-customer@v1
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          version-label: pr-${{ github.event.pull_request.number }}-${{ github.run_number }}
-          distribution: k3s
-          version: "1.35"
+          customer-name: pr-${{ github.event.pull_request.number }}-k3s-1.35
+          channel-slug: ${{ needs.build-and-release.outputs.channel-slug }}
+          customer-email: ci-pr-${{ github.event.pull_request.number }}@example.com
+          expires-in: 1
+
+      - name: Create cluster
+        id: create-cluster
+        uses: replicatedhq/replicated-actions/create-cluster@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          kubernetes-distribution: k3s
+          kubernetes-version: "1.35"
+          cluster-name: gameshelf-pr-${{ github.event.pull_request.number }}
+          timeout-minutes: 5
+          ttl: 30m
+
+      - name: Deploy chart
+        uses: replicatedhq/replicated-actions/helm-install@v1
+        with:
+          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          helm-path: helm
+          registry-username: ci-pr-${{ github.event.pull_request.number }}@example.com
+          registry-password: ${{ steps.create-customer.outputs.license-id }}
+          chart: oci://registry.replicated.com/gameshelf/${{ needs.build-and-release.outputs.channel-slug }}/gameshelf
+          name: gameshelf
+          version: ${{ needs.build-and-release.outputs.version-label }}
+          namespace: gameshelf
+          values: |
+            adminSecret: ci-test-secret
+            postgresql:
+              enabled: true
+            redis:
+              enabled: true
+
+      - name: Health check
+        run: |
+          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=gameshelf \
+            -n gameshelf --timeout=120s --kubeconfig=kubeconfig.yaml
+          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf \
+            --kubeconfig=kubeconfig.yaml &
+          sleep 5
+          curl -f http://localhost:8080/healthz
+
+      - name: Remove cluster
+        if: always()
+        uses: replicatedhq/replicated-actions/remove-cluster@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+
+      - name: Archive customer
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-customer@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-id: ${{ steps.create-customer.outputs.customer-id }}
