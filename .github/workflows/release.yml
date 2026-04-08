@@ -66,4 +66,4 @@ jobs:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           release-sequence: ${{ steps.create-release.outputs.release-sequence }}
           release-version: ${{ env.VERSION }}
-          channel-to: Unstable
+          channel-to: unstable
