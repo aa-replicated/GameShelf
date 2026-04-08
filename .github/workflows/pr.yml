@@ -111,9 +111,13 @@ jobs:
 
       - name: Health check
         env:
-          KUBECONFIG: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          KUBECONFIG_CONTENT: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
         run: |
-          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf &
+          echo "$KUBECONFIG_CONTENT" > /tmp/kubeconfig.yaml
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=gameshelf \
+            -n gameshelf --timeout=120s --kubeconfig=/tmp/kubeconfig.yaml
+          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf \
+            --kubeconfig=/tmp/kubeconfig.yaml &
           sleep 5
           curl -f http://localhost:8080/healthz
 
