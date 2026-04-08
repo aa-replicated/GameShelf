@@ -13,12 +13,14 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/gameshelf/gameshelf/internal/config"
 	"github.com/gameshelf/gameshelf/internal/leaderboard"
+	"github.com/gameshelf/gameshelf/internal/sdk"
 )
 
 // Server holds all application dependencies.
 type Server struct {
 	db       *sql.DB
 	lb       *leaderboard.Client
+	sdk      *sdk.Client
 	tmpls    map[string]*template.Template
 	staticFS fs.FS
 	cfg      config.Config
@@ -28,7 +30,7 @@ type Server struct {
 var pageNames = []string{"index.html", "game.html", "leaderboard.html", "admin.html"}
 
 // NewServer constructs a Server, parsing each page template together with base.html.
-func NewServer(db *sql.DB, lb *leaderboard.Client, templatesFS embed.FS, staticFS embed.FS, cfg config.Config) (*Server, error) {
+func NewServer(db *sql.DB, lb *leaderboard.Client, sdkClient *sdk.Client, templatesFS embed.FS, staticFS embed.FS, cfg config.Config) (*Server, error) {
 	tmpls := make(map[string]*template.Template, len(pageNames))
 	for _, page := range pageNames {
 		t, err := template.ParseFS(templatesFS, "templates/base.html", "templates/"+page)
@@ -41,7 +43,7 @@ func NewServer(db *sql.DB, lb *leaderboard.Client, templatesFS embed.FS, staticF
 	if err != nil {
 		return nil, fmt.Errorf("sub static fs: %w", err)
 	}
-	return &Server{db: db, lb: lb, tmpls: tmpls, staticFS: stripped, cfg: cfg}, nil
+	return &Server{db: db, lb: lb, sdk: sdkClient, tmpls: tmpls, staticFS: stripped, cfg: cfg}, nil
 }
 
 // render executes a named template with buffering to prevent partial responses.
@@ -79,9 +81,10 @@ func (s *Server) Handler() http.Handler {
 	r.Post("/api/scores", s.submitScoreHandler)
 	r.Get("/api/scores/{slug}", s.getScoresHandler)
 
-	// Admin (protected)
+	// Admin (protected by auth + SDK entitlement gate)
 	r.Group(func(r chi.Router) {
 		r.Use(s.adminAuthMiddleware)
+		r.Use(s.sdkAdminGateMiddleware)
 		r.Get("/admin", s.adminHandler)
 		r.Post("/admin/games/{slug}/toggle", s.toggleGameHandler)
 		r.Post("/admin/branding", s.updateBrandingHandler)

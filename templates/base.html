@@ -35,6 +35,21 @@
     </nav>
   </header>
 
+  {{- if .LicenseExpired }}
+  <div class="bg-red-600 text-white text-center py-2 px-4 text-sm font-medium">
+    Your GameShelf license has expired. Please renew to continue using this software.
+  </div>
+  {{- else if .LicenseExpiringSoon }}
+  <div class="bg-yellow-400 text-yellow-900 text-center py-2 px-4 text-sm font-medium">
+    Your GameShelf license expires soon. Please renew to avoid interruption.
+  </div>
+  {{- end }}
+  {{- if .UpdateAvailable }}
+  <div class="bg-blue-600 text-white text-center py-2 px-4 text-sm font-medium">
+    A new version of GameShelf is available. Contact your administrator to update.
+  </div>
+  {{- end }}
+
   <main class="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
     {{ template "content" . }}
   </main>

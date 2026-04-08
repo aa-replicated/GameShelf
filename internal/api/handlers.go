@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gameshelf/gameshelf/internal/db"
@@ -20,6 +21,10 @@ type PageData struct {
 	PageTitle       string
 	Token           string // admin token, preserved across form POSTs
 	PlayerName      string // pre-filled player name from cookie / identity token
+	// SDK-driven banners
+	LicenseExpired      bool // true → red "license expired" banner
+	LicenseExpiringSoon bool // true → yellow "expiring soon" banner (< 30 days)
+	UpdateAvailable     bool // true → blue "update available" banner
 	// Page-specific (only one populated per page)
 	Games                []db.Game
 	Game                 *db.Game
@@ -30,27 +35,43 @@ type PageData struct {
 	IdentitySecretMasked string // shown (masked) on admin panel
 }
 
-// pageBase fills the branding fields from the DB.
+// pageBase fills the branding fields from the DB and SDK banner state.
 func (s *Server) pageBase(r *http.Request) PageData {
 	site, err := db.GetSite(s.db)
+	var data PageData
 	if err != nil || site == nil {
-		return PageData{
+		data = PageData{
 			SiteName:        s.cfg.SiteName,
 			PrimaryColor:    "#3B82F6",
 			SecondaryColor:  "#1E40AF",
 			BackgroundColor: "#F9FAFB",
 			FontFamily:      "system",
 		}
+	} else {
+		data = PageData{
+			SiteName:        site.Name,
+			PrimaryColor:    site.PrimaryColor,
+			SecondaryColor:  site.SecondaryColor,
+			BackgroundColor: site.BackgroundColor,
+			FontFamily:      site.FontFamily,
+			HasLogo:         site.HasLogo,
+			Site:            site,
+		}
 	}
-	return PageData{
-		SiteName:        site.Name,
-		PrimaryColor:    site.PrimaryColor,
-		SecondaryColor:  site.SecondaryColor,
-		BackgroundColor: site.BackgroundColor,
-		FontFamily:      site.FontFamily,
-		HasLogo:         site.HasLogo,
-		Site:            site,
+
+	// Populate SDK banners (fail-open: errors are logged and ignored)
+	if s.sdk.Available() {
+		if info, err := s.sdk.GetLicenseInfo(r.Context()); err == nil && info != nil {
+			if info.IsExpired {
+				data.LicenseExpired = true
+			} else if info.ExpirationDate != nil && time.Until(*info.ExpirationDate) < 30*24*time.Hour {
+				data.LicenseExpiringSoon = true
+			}
+		}
+		data.UpdateAvailable = s.sdk.HasUpdate(r.Context())
 	}
+
+	return data
 }
 
 // GET / — game library landing page
