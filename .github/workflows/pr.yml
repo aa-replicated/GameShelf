@@ -16,6 +16,7 @@ jobs:
       packages: write
     outputs:
       version-label: ${{ env.VERSION_LABEL }}
+      chart-version: ${{ env.CHART_VERSION }}
 
     steps:
       - name: Checkout
@@ -32,7 +33,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set version label
-        run: echo "VERSION_LABEL=pr-${{ github.event.pull_request.number }}-${{ github.run_number }}" >> $GITHUB_ENV
+        run: |
+          echo "VERSION_LABEL=pr-${{ github.event.pull_request.number }}-${{ github.run_number }}" >> $GITHUB_ENV
+          echo "CHART_VERSION=0.0.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Build and push image
         uses: docker/build-push-action@v6
@@ -46,7 +49,7 @@ jobs:
         run: |
           helm dependency update chart/gameshelf
           helm package chart/gameshelf \
-            --version ${{ env.VERSION_LABEL }} \
+            --version ${{ env.CHART_VERSION }} \
             --app-version ${{ env.VERSION_LABEL }} \
             --destination release/
 
@@ -58,7 +61,7 @@ jobs:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           yaml-dir: release/
           promote-channel: Unstable
-          version-label: ${{ env.VERSION_LABEL }}
+          version: ${{ env.CHART_VERSION }}
 
   compatibility-matrix:
     needs: build-and-release
@@ -75,6 +78,7 @@ jobs:
           channel-slug: unstable
           customer-email: ci-pr-${{ github.event.pull_request.number }}@example.com
           expires-in: 1
+          is-kots-install-enabled: "false"
 
       - name: Create cluster
         id: create-cluster
@@ -96,7 +100,7 @@ jobs:
           registry-password: ${{ steps.create-customer.outputs.license-id }}
           chart: oci://registry.replicated.com/gameshelf/unstable/gameshelf
           name: gameshelf
-          version: ${{ needs.build-and-release.outputs.version-label }}
+          version: ${{ needs.build-and-release.outputs.chart-version }}
           namespace: gameshelf
           values: |
             adminSecret: ci-test-secret
@@ -107,9 +111,13 @@ jobs:
 
       - name: Health check
         env:
-          KUBECONFIG: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          KUBECONFIG_CONTENT: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
         run: |
-          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf &
+          echo "$KUBECONFIG_CONTENT" > /tmp/kubeconfig.yaml
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=gameshelf \
+            -n gameshelf --timeout=120s --kubeconfig=/tmp/kubeconfig.yaml
+          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf \
+            --kubeconfig=/tmp/kubeconfig.yaml &
           sleep 5
           curl -f http://localhost:8080/healthz
 

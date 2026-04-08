@@ -56,7 +56,7 @@ jobs:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           yaml-dir: release/
-          version-label: ${{ env.VERSION }}
+          version: ${{ env.VERSION }}
 
       - name: Promote to Unstable
         uses: replicatedhq/replicated-actions/promote-release@v1.20.0
