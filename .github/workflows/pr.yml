@@ -61,7 +61,7 @@ jobs:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           yaml-dir: release/
           promote-channel: Unstable
-          version: ${{ env.VERSION_LABEL }}
+          version: ${{ env.CHART_VERSION }}
 
   compatibility-matrix:
     needs: build-and-release
