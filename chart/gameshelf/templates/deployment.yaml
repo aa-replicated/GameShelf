@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: gameshelf
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.imageProxy.host }}/proxy/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http

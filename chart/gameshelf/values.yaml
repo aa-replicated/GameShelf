@@ -1,5 +1,13 @@
 replicaCount: 1
 
+# Required to allow Bitnami subcharts to use proxied images
+global:
+  security:
+    allowInsecureImages: true
+
+imageProxy:
+  host: proxy.adamanthony.dev
+
 image:
   repository: ghcr.io/aa-replicated/gameshelf
   tag: latest
@@ -53,6 +61,11 @@ adminSecret: ""  # REQUIRED — set a strong secret, e.g. --set adminSecret=... 
 # --- Embedded PostgreSQL (Bitnami subchart) ---
 postgresql:
   enabled: true
+  image:
+    registry: proxy.adamanthony.dev/proxy/docker.io
+  volumePermissions:
+    image:
+      registry: proxy.adamanthony.dev/proxy/docker.io
   auth:
     database: gameshelf
     username: gameshelf
@@ -79,6 +92,8 @@ externalDatabase:
 # --- Embedded Redis (Bitnami subchart) ---
 redis:
   enabled: true
+  image:
+    registry: proxy.adamanthony.dev/proxy/docker.io
   architecture: standalone
   auth:
     enabled: false
@@ -92,6 +107,9 @@ redis:
       limits:
         cpu: 250m
         memory: 128Mi
+
+gameshelf-sdk:
+  enabled: true
 
 # --- BYO Redis ---
 externalRedis:
