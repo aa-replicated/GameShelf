@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set version
+        run: echo "VERSION=0.1.${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/aa-replicated/gameshelf:${{ env.VERSION }}
+            ghcr.io/aa-replicated/gameshelf:latest
+
+      - name: Update Helm dependencies
+        run: helm dependency update chart/gameshelf
+
+      - name: Create Replicated release
+        uses: replicatedhq/replicated-actions/create-release@v1.20.0
+        with:
+          app-slug: gameshelf
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          yaml-dir: .
+          version-label: ${{ env.VERSION }}
+
+      - name: Promote to Unstable
+        uses: replicatedhq/replicated-actions/promote-release@v1.20.0
+        with:
+          app-slug: gameshelf
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          version-label: ${{ env.VERSION }}
+          channel: Unstable
