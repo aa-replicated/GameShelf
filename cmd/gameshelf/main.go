@@ -13,6 +13,7 @@ import (
 	"github.com/gameshelf/gameshelf/internal/config"
 	"github.com/gameshelf/gameshelf/internal/db"
 	"github.com/gameshelf/gameshelf/internal/leaderboard"
+	"github.com/gameshelf/gameshelf/internal/sdk"
 )
 
 func main() {
@@ -61,11 +62,23 @@ func main() {
 		log.Printf("Warning: could not seed leaderboards: %v", err)
 	}
 
+	// Initialize Replicated SDK client (fail-open if SDK_SERVICE_URL is unset)
+	sdkClient := sdk.New(cfg.SDKServiceURL)
+	if sdkClient.Available() {
+		log.Printf("Replicated SDK connected at %s", cfg.SDKServiceURL)
+	} else {
+		log.Println("Replicated SDK not configured (SDK_SERVICE_URL unset) — license checks disabled")
+	}
+
 	// Build HTTP server
-	srv, err := api.NewServer(database, lb, gameshelf.TemplatesFS, gameshelf.StaticFS, cfg)
+	srv, err := api.NewServer(database, lb, sdkClient, gameshelf.TemplatesFS, gameshelf.StaticFS, cfg)
 	if err != nil {
 		log.Fatalf("creating server: %v", err)
 	}
+
+	// Start custom metrics background reporter
+	ctx := context.Background()
+	sdkClient.RunMetricsLoop(ctx, database, 60*time.Second)
 
 	addr := ":" + cfg.Port
 	log.Printf("listening on %s", addr)
