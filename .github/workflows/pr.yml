@@ -78,6 +78,7 @@ jobs:
           channel-slug: unstable
           customer-email: ci-pr-${{ github.event.pull_request.number }}@example.com
           expires-in: 1
+          is-kots-install-enabled: "false"
 
       - name: Create cluster
         id: create-cluster
