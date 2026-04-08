@@ -52,6 +52,7 @@ jobs:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           yaml-dir: .
+          promote-channel: Unstable
           version-label: ${{ env.VERSION_LABEL }}
 
   compatibility-matrix:
