@@ -1,5 +1,4 @@
-{{- $tlsMode := .Values.tls.mode | default "none" -}}
-{{- if eq $tlsMode "auto" -}}
+{{- if eq .Values.tls.mode "auto" -}}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -19,9 +18,9 @@ spec:
     solvers:
       - http01:
           ingress:
-            ingressClassName: {{ .Values.ingress.className | default "nginx" | quote }}
-{{- end }}
-{{- if eq $tlsMode "selfsigned" }}
+            ingressClassName: "traefik"
+{{ end }}
+{{- if eq .Values.tls.mode "selfsigned" -}}
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -30,4 +29,4 @@ metadata:
     {{- include "gameshelf.labels" . | nindent 4 }}
 spec:
   selfSigned: {}
-{{- end }}
+{{ end }}

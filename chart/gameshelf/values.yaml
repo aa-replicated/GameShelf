@@ -12,7 +12,7 @@ service:
 
 ingress:
   enabled: false
-  className: "nginx"
+  className: "traefik"
   host: ""  # required when tls.mode is not "none"
   annotations: {}
   hosts:
