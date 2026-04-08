@@ -9,6 +9,7 @@ type Config struct {
 	Port           string
 	SiteName       string
 	IdentitySecret string // optional; auto-generated and stored in DB if empty
+	SDKServiceURL  string // URL of Replicated SDK sidecar, e.g. http://localhost:3000
 }
 
 func Load() Config {
@@ -31,5 +32,6 @@ func Load() Config {
 		Port:           port,
 		SiteName:       siteName,
 		IdentitySecret: os.Getenv("IDENTITY_SECRET"),
+		SDKServiceURL:  os.Getenv("SDK_SERVICE_URL"),
 	}
 }
