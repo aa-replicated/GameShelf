@@ -42,8 +42,13 @@ jobs:
           platforms: linux/amd64
           tags: ghcr.io/aa-replicated/gameshelf:pr-${{ github.event.pull_request.number }}
 
-      - name: Update Helm dependencies
-        run: helm dependency update chart/gameshelf
+      - name: Package Helm chart
+        run: |
+          helm dependency update chart/gameshelf
+          helm package chart/gameshelf \
+            --version ${{ env.VERSION_LABEL }} \
+            --app-version ${{ env.VERSION_LABEL }} \
+            --destination release/
 
       - name: Create Replicated release
         id: create-release
@@ -51,7 +56,7 @@ jobs:
         with:
           app-slug: gameshelf
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          yaml-dir: .
+          yaml-dir: release/
           promote-channel: Unstable
           version-label: ${{ env.VERSION_LABEL }}
 
@@ -101,12 +106,10 @@ jobs:
               enabled: true
 
       - name: Health check
+        env:
+          KUBECONFIG: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
         run: |
-          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
-          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=gameshelf \
-            -n gameshelf --timeout=120s --kubeconfig=kubeconfig.yaml
-          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf \
-            --kubeconfig=kubeconfig.yaml &
+          kubectl port-forward svc/gameshelf 8080:80 -n gameshelf &
           sleep 5
           curl -f http://localhost:8080/healthz
 
