@@ -1,4 +1,6 @@
 app-slug: gameshelf
+embedded-cluster-config:
+  path: embedded-cluster-config.yaml
 channels:
   - name: Unstable
   - name: Beta
