@@ -104,10 +104,19 @@ jobs:
           namespace: gameshelf
           values: |
             adminSecret: ci-test-secret
+            imageProxy:
+              host: ""
             postgresql:
               enabled: true
+              image:
+                registry: docker.io
+              volumePermissions:
+                image:
+                  registry: docker.io
             redis:
               enabled: true
+              image:
+                registry: docker.io
 
       - name: Health check
         env:
