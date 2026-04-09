@@ -1,15 +1,5 @@
 replicaCount: 1
 
-
-
-preflight:
-    minKubernetesVersion: "1.26.0"
-    minCPU: 2
-    minMemory: 4Gi
-    requiredEndpoint: "https://replicated.app"
-
-
-
 # Required to allow Bitnami subcharts to use proxied images
 global:
   imagePullSecrets: []

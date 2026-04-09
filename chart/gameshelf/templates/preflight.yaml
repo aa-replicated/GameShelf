@@ -80,6 +80,9 @@ stringData:
             checkName: Supported Kubernetes Distribution
             outcomes:
               - fail:
+                  when: "== kind"
+                  message: "Kind (including Docker Desktop) is not a supported production environment for GameShelf."
+              - fail:
                   when: "== docker-desktop"
                   message: "Docker Desktop is not a supported production environment for GameShelf. Please deploy to a supported distribution such as EKS, GKE, AKS, or k3s."
               - fail:
