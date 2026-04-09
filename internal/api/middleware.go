@@ -49,9 +49,10 @@ func (s *Server) adminAuthMiddleware(next http.Handler) http.Handler {
 // Fail-open: if SDK is unavailable or field is absent, access is allowed.
 func (s *Server) sdkAdminGateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.sdk.IsFeatureEnabled(r.Context(), "admin_panel_enabled") {
-			log.Printf("admin: access denied by license entitlement (admin_panel_enabled=false)")
-			http.Error(w, "Admin panel disabled by license", http.StatusForbidden)
+		enabled := s.sdk.IsFeatureEnabled(r.Context(), "admin_panel_enabled")
+		log.Printf("SDK license check: admin_panel_enabled=%v", enabled)
+		if !enabled {
+			http.Error(w, "This feature requires an upgraded license", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
