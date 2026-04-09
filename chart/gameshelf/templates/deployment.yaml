@@ -26,7 +26,7 @@ spec:
       containers:
         - name: gameshelf
           {{- if .Values.imageProxy.host }}
-          image: "{{ .Values.imageProxy.host }}/proxy/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.imageProxy.host }}/proxy/{{ .Values.imageProxy.appSlug }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}

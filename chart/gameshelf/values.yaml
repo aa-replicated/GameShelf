@@ -10,6 +10,7 @@ imagePullSecrets: []
 
 imageProxy:
   host: proxy.adamanthony.dev
+  appSlug: gameshelf
 
 image:
   repository: ghcr.io/aa-replicated/gameshelf
@@ -65,10 +66,10 @@ adminSecret: ""  # REQUIRED — set a strong secret, e.g. --set adminSecret=... 
 postgresql:
   enabled: true
   image:
-    registry: proxy.adamanthony.dev/proxy/docker.io
+    registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
   volumePermissions:
     image:
-      registry: proxy.adamanthony.dev/proxy/docker.io
+      registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
   auth:
     database: gameshelf
     username: gameshelf
@@ -96,7 +97,7 @@ externalDatabase:
 redis:
   enabled: true
   image:
-    registry: proxy.adamanthony.dev/proxy/docker.io
+    registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
   architecture: standalone
   auth:
     enabled: false
