@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"log"
 	"sync"
 	"time"
 )
@@ -72,11 +73,24 @@ func (c *Client) GetFieldValue(ctx context.Context, fieldName string) (string, e
 }
 
 // IsFeatureEnabled returns true if the named license field equals "true".
-// Returns true when SDK is unavailable (fail-open).
+// Fail-closed: SDK unreachable → deny access.
+// Exception: SDK URL unset AND LocalDev=true → allow (local development bypass).
 func (c *Client) IsFeatureEnabled(ctx context.Context, fieldName string) bool {
+	if !c.Available() {
+		if c.localDev {
+			log.Printf("sdk: LOCAL_DEV mode — bypassing %s check", fieldName)
+			return true
+		}
+		log.Printf("sdk: SDK_SERVICE_URL not set — denying %s (set LOCAL_DEV=true to bypass)", fieldName)
+		return false
+	}
 	val, err := c.GetFieldValue(ctx, fieldName)
-	if err != nil || val == "" {
-		return true // fail-open
+	if err != nil {
+		log.Printf("sdk: %s check failed (%v) — denying access", fieldName, err)
+		return false // fail-closed: SDK configured but unreachable
+	}
+	if val == "" {
+		return true // field absent means not gated; allow
 	}
 	return val == "true"
 }

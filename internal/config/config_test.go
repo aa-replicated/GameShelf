@@ -8,6 +8,7 @@ func TestLoad_Defaults(t *testing.T) {
 	t.Setenv("ADMIN_SECRET", "")
 	t.Setenv("DATABASE_URL", "")
 	t.Setenv("REDIS_URL", "")
+	t.Setenv("LOCAL_DEV", "")
 
 	cfg := Load()
 
@@ -25,6 +26,26 @@ func TestLoad_Defaults(t *testing.T) {
 	}
 	if cfg.RedisURL != "" {
 		t.Errorf("RedisURL should be empty by default, got %q", cfg.RedisURL)
+	}
+	if cfg.LocalDev {
+		t.Errorf("LocalDev should be false by default")
+	}
+}
+
+func TestLoad_LocalDev(t *testing.T) {
+	t.Setenv("LOCAL_DEV", "true")
+	if cfg := Load(); !cfg.LocalDev {
+		t.Error("LocalDev should be true when LOCAL_DEV=true")
+	}
+
+	t.Setenv("LOCAL_DEV", "false")
+	if cfg := Load(); cfg.LocalDev {
+		t.Error("LocalDev should be false when LOCAL_DEV=false")
+	}
+
+	t.Setenv("LOCAL_DEV", "1") // only "true" activates it
+	if cfg := Load(); cfg.LocalDev {
+		t.Error("LocalDev should be false when LOCAL_DEV=1")
 	}
 }
 

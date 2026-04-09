@@ -10,6 +10,7 @@ type Config struct {
 	SiteName       string
 	IdentitySecret string // optional; auto-generated and stored in DB if empty
 	SDKServiceURL  string // URL of Replicated SDK sidecar, e.g. http://localhost:3000
+	LocalDev       bool   // LOCAL_DEV=true bypasses SDK gates when SDK_SERVICE_URL is unset
 }
 
 func Load() Config {
@@ -33,5 +34,6 @@ func Load() Config {
 		SiteName:       siteName,
 		IdentitySecret: os.Getenv("IDENTITY_SECRET"),
 		SDKServiceURL:  os.Getenv("SDK_SERVICE_URL"),
+		LocalDev:       os.Getenv("LOCAL_DEV") == "true",
 	}
 }
