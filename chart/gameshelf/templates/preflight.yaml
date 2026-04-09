@@ -25,7 +25,7 @@ stringData:
         - http:
             collectorName: replicated-app-reachability
             get:
-              url: https://replicated.app
+              url: {{ .Values.preflight.requiredEndpoint }}
               timeout: 10s
       analyzers:
         - textAnalyze:
@@ -56,7 +56,7 @@ stringData:
             checkName: Cluster CPU Requirements
             outcomes:
               - fail:
-                  when: "sum(cpuCapacity) < 2"
+                  when: "sum(cpuCapacity) < {{ .Values.preflight.minCPU }}"
                   message: "GameShelf requires at least 2 CPU cores across all cluster nodes. Add more nodes or increase per-node CPU allocation to meet this requirement."
               - pass:
                   message: Cluster has sufficient CPU capacity for GameShelf.
@@ -64,7 +64,7 @@ stringData:
             checkName: Cluster Memory Requirements
             outcomes:
               - fail:
-                  when: "sum(memoryCapacity) < 4Gi"
+                  when: "sum(memoryCapacity) < {{ .Values.preflight.minMemory }}"
                   message: "GameShelf requires at least 4 GiB of memory across all cluster nodes. Add more nodes or increase per-node memory allocation to meet this requirement."
               - pass:
                   message: Cluster has sufficient memory for GameShelf.
@@ -72,7 +72,7 @@ stringData:
             checkName: Kubernetes Version
             outcomes:
               - fail:
-                  when: "< 1.26.0"
+                  when: "< {{ .Values.preflight.minKubernetesVersion }}"
                   message: "GameShelf requires Kubernetes 1.26.0 or later. Your cluster version does not meet this requirement. Please upgrade your cluster before installing GameShelf."
               - pass:
                   message: "Kubernetes version meets the minimum requirement (1.26+)."
