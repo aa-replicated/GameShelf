@@ -9,19 +9,14 @@ import (
 	"time"
 )
 
-// Metric is a single key/value pair for the custom metrics API.
-type Metric struct {
-	Key   string `json:"key"`
-	Value any    `json:"value"`
-}
-
 // metricsPayload is the request body for PATCH /api/v1/app/custom-metrics.
+// The SDK expects {"data": {"metric_name": value, ...}}.
 type metricsPayload struct {
-	Data []Metric `json:"data"`
+	Data map[string]any `json:"data"`
 }
 
 // ReportMetrics sends the provided metrics to the SDK sidecar.
-func (c *Client) ReportMetrics(ctx context.Context, metrics []Metric) error {
+func (c *Client) ReportMetrics(ctx context.Context, metrics map[string]any) error {
 	payload := metricsPayload{Data: metrics}
 	b, err := json.Marshal(payload)
 	if err != nil {
@@ -75,11 +70,10 @@ func (c *Client) collectAndReport(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	metrics := []Metric{
-		{Key: "games_played_total", Value: gamesPlayed},
-		{Key: "scores_submitted_total", Value: scoresSubmitted},
-		{Key: "active_players_24h", Value: activePlayers},
-		{Key: "active_games", Value: activeGames},
-	}
-	return c.ReportMetrics(ctx, metrics)
+	return c.ReportMetrics(ctx, map[string]any{
+		"games_played_total":    gamesPlayed,
+		"scores_submitted_total": scoresSubmitted,
+		"active_players_24h":    activePlayers,
+		"active_games":          activeGames,
+	})
 }
