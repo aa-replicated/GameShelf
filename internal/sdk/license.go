@@ -95,10 +95,7 @@ func (c *Client) IsFeatureEnabled(ctx context.Context, fieldName string) bool {
 		log.Printf("sdk: %s check failed (%v) — denying access", fieldName, err)
 		return false // fail-closed: SDK configured but unreachable
 	}
-	if val == "<nil>" || val == "" {
-		return true // field absent means not gated; allow
-	}
-	return val == "true"
+	return val == "true" // absent/null/any other value → deny (fail-closed)
 }
 
 // IsLicenseValid returns true if the license exists and is not expired.
