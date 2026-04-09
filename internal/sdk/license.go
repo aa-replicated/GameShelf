@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -17,8 +18,10 @@ type LicenseInfo struct {
 }
 
 // FieldValue mirrors the /api/v1/license/fields/:name response.
+// Value is interface{} because the SDK may return JSON booleans (true/false)
+// or strings — decoding into a string field silently drops non-string values.
 type FieldValue struct {
-	Value string `json:"value"`
+	Value interface{} `json:"value"`
 }
 
 // licenseCache holds a cached LicenseInfo with a TTL.
@@ -59,7 +62,7 @@ func (c *Client) GetLicenseInfo(ctx context.Context) (*LicenseInfo, error) {
 	return &info, nil
 }
 
-// GetFieldValue returns the value of a named license field.
+// GetFieldValue returns the value of a named license field as a string.
 // Returns "", nil when SDK is unavailable.
 func (c *Client) GetFieldValue(ctx context.Context, fieldName string) (string, error) {
 	if !c.Available() {
@@ -69,7 +72,10 @@ func (c *Client) GetFieldValue(ctx context.Context, fieldName string) (string, e
 	if err := c.get(ctx, "/api/v1/license/fields/"+fieldName, &fv); err != nil {
 		return "", err
 	}
-	return fv.Value, nil
+	if fv.Value == nil {
+		return "", nil
+	}
+	return fmt.Sprintf("%v", fv.Value), nil
 }
 
 // IsFeatureEnabled returns true if the named license field equals "true".
@@ -89,10 +95,7 @@ func (c *Client) IsFeatureEnabled(ctx context.Context, fieldName string) bool {
 		log.Printf("sdk: %s check failed (%v) — denying access", fieldName, err)
 		return false // fail-closed: SDK configured but unreachable
 	}
-	if val == "" {
-		return true // field absent means not gated; allow
-	}
-	return val == "true"
+	return val == "true" // absent/null/any other value → deny (fail-closed)
 }
 
 // IsLicenseValid returns true if the license exists and is not expired.
