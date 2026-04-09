@@ -112,7 +112,7 @@ redis:
         cpu: 250m
         memory: 128Mi
 
-replicated:
+gameshelf-sdk:
   enabled: true
 
 # --- BYO Redis ---
