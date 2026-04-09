@@ -66,10 +66,10 @@ adminSecret: ""  # REQUIRED — set a strong secret, e.g. --set adminSecret=... 
 postgresql:
   enabled: true
   image:
-    registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
+    registry: proxy.adamanthony.dev/proxy/gameshelf/index.docker.io
   volumePermissions:
     image:
-      registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
+      registry: proxy.adamanthony.dev/proxy/gameshelf/index.docker.io
   auth:
     database: gameshelf
     username: gameshelf
@@ -97,7 +97,7 @@ externalDatabase:
 redis:
   enabled: true
   image:
-    registry: proxy.adamanthony.dev/proxy/gameshelf/docker.io
+    registry: proxy.adamanthony.dev/proxy/gameshelf/index.docker.io
   architecture: standalone
   auth:
     enabled: false
