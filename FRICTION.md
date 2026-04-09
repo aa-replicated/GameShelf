@@ -31,6 +31,31 @@
   license injection. There's no documentation covering this
   interaction.
 
+### SDK integration mode loses release context
+
+  - Trying to do: Get the SDK working after the
+  alias broke automatic license injection
+  - Expected: The integration mode workaround
+  would provide full SDK functionality
+  - Actual: Integration mode only provides
+  license data. The SDK loses release context —
+  app version shows --- in vendor portal, update
+   checks can't work (SDK doesn't know current
+  version to compare against). Custom metrics
+  work, license gating works, but version
+  reporting and update availability are broken.
+  - Resolution: No resolution — this is a
+  downstream consequence of the alias/license
+  injection issue. A normal install without the
+  alias would work correctly, but the rubric
+  requires branding the SDK deployment name.
+  - Severity: Blocker for rubric items 2.6
+  (update banner) and 2.9 (instance version
+  reporting). These features cannot work
+  properly in integration mode.
+
+
+## summary of chat history M-W 
 1. CMX Tunnel + Cloudflare CNAME conflict — Blocker. Custom domain
    can't point to CMX because replicatedcluster.com is behind
   Cloudflare. ~1 hour, no resolution.
