@@ -31,6 +31,7 @@ func (c *Client) RunMetricsLoop(ctx context.Context, db *sql.DB, interval time.D
 	if !c.Available() {
 		return
 	}
+	log.Printf("sdk: metrics loop started (interval: %v)", interval)
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
@@ -70,10 +71,15 @@ func (c *Client) collectAndReport(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	return c.ReportMetrics(ctx, map[string]any{
-		"games_played_total":    gamesPlayed,
+	if err := c.ReportMetrics(ctx, map[string]any{
+		"games_played_total":     gamesPlayed,
 		"scores_submitted_total": scoresSubmitted,
-		"active_players_24h":    activePlayers,
-		"active_games":          activeGames,
-	})
+		"active_players_24h":     activePlayers,
+		"active_games":           activeGames,
+	}); err != nil {
+		return err
+	}
+	log.Printf("sdk: metrics reported: games_played_total=%d scores_submitted_total=%d active_players_24h=%d active_games=%d",
+		gamesPlayed, scoresSubmitted, activePlayers, activeGames)
+	return nil
 }

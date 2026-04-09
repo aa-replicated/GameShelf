@@ -62,8 +62,9 @@ func main() {
 		log.Printf("Warning: could not seed leaderboards: %v", err)
 	}
 
-	// Initialize Replicated SDK client (fail-open if SDK_SERVICE_URL is unset)
-	sdkClient := sdk.New(cfg.SDKServiceURL)
+	// Initialize Replicated SDK client
+	// Fail-closed when SDK URL is set; LOCAL_DEV=true bypasses gates when URL is unset.
+	sdkClient := sdk.New(cfg.SDKServiceURL, cfg.LocalDev)
 	if sdkClient.Available() {
 		log.Printf("Replicated SDK connected at %s", cfg.SDKServiceURL)
 	} else {
