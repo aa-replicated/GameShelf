@@ -2,8 +2,11 @@ replicaCount: 1
 
 # Required to allow Bitnami subcharts to use proxied images
 global:
+  imagePullSecrets: []
   security:
     allowInsecureImages: true
+
+imagePullSecrets: []
 
 imageProxy:
   host: proxy.adamanthony.dev
