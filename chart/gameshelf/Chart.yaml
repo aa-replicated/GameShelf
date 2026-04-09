@@ -6,6 +6,10 @@ version: 0.1.0
 appVersion: "0.1.0"
 
 dependencies:
+  - name: replicated
+    version: ~1.19
+    repository: oci://registry.replicated.com/library
+    condition: replicated.enabled
   - name: postgresql
     version: ~18.5
     repository: https://charts.bitnami.com/bitnami

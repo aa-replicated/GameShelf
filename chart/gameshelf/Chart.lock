@@ -1,9 +1,12 @@
 dependencies:
+- name: replicated
+  repository: oci://registry.replicated.com/library
+  version: 1.19.1
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
-  version: 18.5.15
+  version: 18.5.16
 - name: redis
   repository: https://charts.bitnami.com/bitnami
-  version: 25.3.9
-digest: sha256:e4bdab8e0d0501be9286696c4946fc22a4cfd93de70efede6b5651ab06e1725d
-generated: "2026-04-07T10:25:40.323153-04:00"
+  version: 25.3.10
+digest: sha256:4afeb179692f1646461c5bbb7cf3212153577799e37fa91584cb3d1ae8d7ddee
+generated: "2026-04-08T22:21:57.47304-04:00"
