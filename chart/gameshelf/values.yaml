@@ -15,7 +15,7 @@ imageProxy:
 image:
   repository: ghcr.io/aa-replicated/gameshelf
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP
