@@ -98,6 +98,20 @@ func (c *Client) IsFeatureEnabled(ctx context.Context, fieldName string) bool {
 	return val == "true" // absent/null/any other value → deny (fail-closed)
 }
 
+// GetExpiresAt fetches the expires_at license field and parses it as a time.
+// Returns zero time and nil error when the field is absent or SDK unavailable.
+func (c *Client) GetExpiresAt(ctx context.Context) (time.Time, error) {
+	val, err := c.GetFieldValue(ctx, "expires_at")
+	if err != nil || val == "" {
+		return time.Time{}, err
+	}
+	t, err := time.Parse(time.RFC3339, val)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("sdk: parsing expires_at %q: %w", val, err)
+	}
+	return t, nil
+}
+
 // IsLicenseValid returns true if the license exists and is not expired.
 // Returns true when SDK is unavailable (fail-open).
 func (c *Client) IsLicenseValid(ctx context.Context) bool {

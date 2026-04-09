@@ -22,9 +22,10 @@ type PageData struct {
 	Token           string // admin token, preserved across form POSTs
 	PlayerName      string // pre-filled player name from cookie / identity token
 	// SDK-driven banners
-	LicenseExpired      bool // true → red "license expired" banner
-	LicenseExpiringSoon bool // true → yellow "expiring soon" banner (< 30 days)
-	UpdateAvailable     bool // true → blue "update available" banner
+	LicenseExpired      bool   // true → red "license expired" banner
+	LicenseExpiringSoon bool   // true → yellow "expiring soon" banner (< 30 days)
+	LicenseExpiresOn    string // human-readable expiry date for the yellow banner
+	UpdateAvailable     bool   // true → blue "update available" banner
 	// Page-specific (only one populated per page)
 	Games                []db.Game
 	Game                 *db.Game
@@ -61,11 +62,17 @@ func (s *Server) pageBase(r *http.Request) PageData {
 
 	// Populate SDK banners (fail-open: errors are logged and ignored)
 	if s.sdk.Available() {
-		if info, err := s.sdk.GetLicenseInfo(r.Context()); err == nil && info != nil {
-			if info.IsExpired {
+		expiresAt, err := s.sdk.GetExpiresAt(r.Context())
+		if err != nil {
+			log.Printf("sdk: expires_at check error: %v", err)
+		} else if !expiresAt.IsZero() {
+			daysRemaining := int(time.Until(expiresAt).Hours() / 24)
+			log.Printf("sdk: license expires_at=%s, days_remaining=%d", expiresAt.Format(time.RFC3339), daysRemaining)
+			if expiresAt.Before(time.Now()) {
 				data.LicenseExpired = true
-			} else if info.ExpirationDate != nil && time.Until(*info.ExpirationDate) < 30*24*time.Hour {
+			} else if daysRemaining <= 30 {
 				data.LicenseExpiringSoon = true
+				data.LicenseExpiresOn = expiresAt.Format("January 2, 2006")
 			}
 		}
 		data.UpdateAvailable = s.sdk.HasUpdate(r.Context())
