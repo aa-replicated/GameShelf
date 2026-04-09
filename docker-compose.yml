@@ -11,6 +11,7 @@ services:
       ADMIN_SECRET: ${ADMIN_SECRET:-changeme}
       SITE_NAME: ${SITE_NAME:-GameShelf}
       PORT: "8080"
+      LOCAL_DEV: "true"
     depends_on:
       postgres:
         condition: service_healthy

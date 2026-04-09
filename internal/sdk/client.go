@@ -10,18 +10,21 @@ import (
 )
 
 // Client is a thin wrapper around the Replicated SDK sidecar HTTP API.
-// All methods are fail-open: if the SDK is unreachable they return zero
-// values and a nil error so the application continues normally.
+// Feature-gate methods (IsFeatureEnabled) are fail-closed: SDK unreachable = access denied.
+// Informational methods (HasUpdate, GetLicenseInfo) remain fail-open.
+// Exception: when SDK_SERVICE_URL is unset and LocalDev is true, gates are bypassed.
 type Client struct {
 	base       string
+	localDev   bool
 	httpClient *http.Client
 }
 
 // New returns a Client pointed at baseURL (e.g. "http://localhost:3000").
-// Pass an empty string to get a no-op client that always returns zero values.
-func New(baseURL string) *Client {
+// Pass localDev=true (LOCAL_DEV=true env var) to bypass SDK gates when baseURL is empty.
+func New(baseURL string, localDev bool) *Client {
 	return &Client{
-		base: baseURL,
+		base:     baseURL,
+		localDev: localDev,
 		httpClient: &http.Client{
 			Timeout: 3 * time.Second,
 		},
@@ -46,8 +49,7 @@ func (c *Client) get(ctx context.Context, path string, dst any) error {
 	}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		// Connection failure — stay fail-open, return nil
-		return nil
+		return fmt.Errorf("sdk: %s unreachable: %w", path, err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
