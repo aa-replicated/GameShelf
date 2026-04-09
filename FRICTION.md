@@ -80,3 +80,23 @@
   8. No end-to-end "first deploy" walkthrough — "I would have
   churned." Each issue above was discovered independently through
   failure. ~1.5 hours cumulative.
+
+
+## Items I skipped and (may or not have) returned to
+ 1. Tier 0 — TLS/cert-manager — template exists but couldn't test due to  
+  CMX tunnel + Cloudflare CNAME conflict. Deferred to embedded cluster
+  where it should work.                                                    
+  2. Tier 2.6 — Update available banner — skipped, claiming SDK integration
+   mode (aliased as gameshelf-sdk) breaks version reporting/update checks. 
+  May be worth retesting.
+  3. Tier 2 — Optional ingress — template exists but untested on CMX.      
+  4. Tier 3 — External DB preflight analyzer — runPod collector output path
+   doesn't match textAnalyze fileName. Never resolved.                     
+  5. Tier 3 — Support bundle health + DB analyzers — just fixed the        
+  fileNames, not yet re-verified on CMX.                                   
+  6. Duplicate preflight: block in values.yaml — cosmetic, needs cleanup.
+  7. Word search game bug — broken in browser.                             
+                  
+  Items 1-4 are rubric-relevant. Want to circle back on any of these before
+   moving to Tier 4, or press forward?
+                     

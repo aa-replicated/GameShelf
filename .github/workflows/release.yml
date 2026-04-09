@@ -50,6 +50,11 @@ jobs:
             --app-version ${{ env.VERSION }} \
             --destination release/
 
+      - name: Copy Replicated configs
+        run: |
+          cp .replicated release/
+          cp embedded-cluster-config.yaml release/
+
       - name: Create Replicated release
         id: create-release
         uses: replicatedhq/replicated-actions/create-release@v1.20.0
