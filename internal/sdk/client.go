@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -44,9 +45,11 @@ func (c *Client) get(ctx context.Context, path string, dst any) error {
 	if err != nil {
 		return fmt.Errorf("sdk: build request: %w", err)
 	}
+	log.Printf("sdk: GET %s", path)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		// Connection failure — stay fail-open, return nil
+		log.Printf("sdk: GET %s unreachable: %v", path, err)
 		return nil
 	}
 	defer resp.Body.Close()
@@ -57,6 +60,7 @@ func (c *Client) get(ctx context.Context, path string, dst any) error {
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("sdk: %s returned %d: %s", path, resp.StatusCode, body)
 	}
+	log.Printf("sdk: GET %s -> %d OK", path, resp.StatusCode)
 	if dst != nil {
 		if err := json.Unmarshal(body, dst); err != nil {
 			return fmt.Errorf("sdk: decode %s: %w", path, err)
@@ -75,8 +79,10 @@ func (c *Client) patch(ctx context.Context, path string, body io.Reader) error {
 		return fmt.Errorf("sdk: build request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	log.Printf("sdk: PATCH %s", path)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Printf("sdk: PATCH %s unreachable: %v", path, err)
 		return nil // fail-open
 	}
 	defer resp.Body.Close()
@@ -84,5 +90,6 @@ func (c *Client) patch(ctx context.Context, path string, body io.Reader) error {
 		b, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("sdk: PATCH %s returned %d: %s", path, resp.StatusCode, b)
 	}
+	log.Printf("sdk: PATCH %s -> %d OK", path, resp.StatusCode)
 	return nil
 }
