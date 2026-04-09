@@ -7,7 +7,7 @@ metadata:
     troubleshoot.sh/kind: support-bundle
 type: Opaque
 stringData:
-  support-bundle.yaml: |
+  support-bundle-spec: |
     apiVersion: troubleshoot.sh/v1beta2
     kind: SupportBundle
     metadata:
