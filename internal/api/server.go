@@ -81,10 +81,10 @@ func (s *Server) Handler() http.Handler {
 	r.Post("/api/scores", s.submitScoreHandler)
 	r.Get("/api/scores/{slug}", s.getScoresHandler)
 
-	// Admin (protected by auth + SDK entitlement gate)
+	// Admin (SDK entitlement gate runs first, then auth)
 	r.Group(func(r chi.Router) {
-		r.Use(s.adminAuthMiddleware)
 		r.Use(s.sdkAdminGateMiddleware)
+		r.Use(s.adminAuthMiddleware)
 		r.Get("/admin", s.adminHandler)
 		r.Post("/admin/games/{slug}/toggle", s.toggleGameHandler)
 		r.Post("/admin/branding", s.updateBrandingHandler)
