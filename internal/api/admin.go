@@ -17,6 +17,14 @@ var hexColorRE = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
 
 // GET /admin — admin panel
 func (s *Server) adminHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("sdk: checking admin_panel_enabled entitlement")
+	enabled := s.sdk.IsFeatureEnabled(r.Context(), "admin_panel_enabled")
+	log.Printf("sdk: admin_panel_enabled = %v", enabled)
+	if !enabled {
+		http.Error(w, "This feature requires an upgraded license", http.StatusForbidden)
+		return
+	}
+
 	games, err := db.GetAllGames(s.db)
 	if err != nil {
 		log.Printf("admin: get all games: %v", err)
