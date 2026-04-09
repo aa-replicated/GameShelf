@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "gameshelf.fullname" . }}-support-bundle
+  labels:
+    {{- include "gameshelf.labels" . | nindent 4 }}
+    troubleshoot.sh/kind: support-bundle
+type: Opaque
+stringData:
+  support-bundle.yaml: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: SupportBundle
+    metadata:
+      name: gameshelf-support-bundle
+    spec:
+      collectors:
+        - logs:
+            collectorName: gameshelf-app
+            selector:
+              - app.kubernetes.io/name={{ include "gameshelf.name" . }}
+              - app.kubernetes.io/instance={{ .Release.Name }}
+            namespace: {{ .Release.Namespace }}
+            limits:
+              maxLines: 5000
+              maxAge: 72h
+        - logs:
+            collectorName: gameshelf-postgresql
+            selector:
+              - app.kubernetes.io/name=postgresql
+              - app.kubernetes.io/instance={{ .Release.Name }}
+            namespace: {{ .Release.Namespace }}
+            limits:
+              maxLines: 5000
+              maxAge: 72h
+        - logs:
+            collectorName: gameshelf-redis
+            selector:
+              - app.kubernetes.io/name=redis
+              - app.kubernetes.io/instance={{ .Release.Name }}
+            namespace: {{ .Release.Namespace }}
+            limits:
+              maxLines: 5000
+              maxAge: 72h
+        - logs:
+            collectorName: gameshelf-sdk
+            selector:
+              - app=gameshelf-sdk
+            namespace: {{ .Release.Namespace }}
+            limits:
+              maxLines: 5000
+              maxAge: 72h
+        - http:
+            collectorName: gameshelf-healthz
+            get:
+              url: http://{{ include "gameshelf.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local/healthz
+              timeout: 5s
+      analyzers:
+        - textAnalyze:
+            checkName: GameShelf Health Endpoint
+            fileName: http/gameshelf-healthz.json
+            regex: "(?i)ok"
+            outcomes:
+              - pass:
+                  when: "true"
+                  message: GameShelf health endpoint is responding correctly.
+              - fail:
+                  when: "false"
+                  message: "GameShelf health endpoint is not responding or returning an unhealthy status. Check the gameshelf-app logs for startup errors or crashes."
+        - textAnalyze:
+            checkName: Database Connection Errors
+            fileName: logs/gameshelf-app/*.log
+            regex: "connection refused|no such host|dial tcp.*connect: connection refused"
+            outcomes:
+              - fail:
+                  when: "true"
+                  message: "Database connection errors detected in GameShelf logs. Verify the database host, port, and credentials are correct and the database is running."
+              - pass:
+                  when: "false"
+                  message: No database connection errors found in GameShelf logs.
+        - deploymentStatus:
+            name: {{ include "gameshelf.fullname" . }}
+            namespace: {{ .Release.Namespace }}
+            outcomes:
+              - fail:
+                  when: "< 1"
+                  message: "The GameShelf deployment has no available replicas. Check pod logs for crash loops, image pull errors, or configuration issues."
+              - pass:
+                  message: GameShelf deployment is running with at least one available replica.
+        - deploymentStatus:
+            name: gameshelf-sdk
+            namespace: {{ .Release.Namespace }}
+            outcomes:
+              - fail:
+                  when: "< 1"
+                  message: "The Replicated SDK deployment has no available replicas. License validation and entitlement checks may not work. Check the gameshelf-sdk pod logs."
+              - pass:
+                  message: Replicated SDK deployment is running.
+        - statefulsetStatus:
+            name: {{ include "gameshelf.fullname" . }}-postgresql
+            namespace: {{ .Release.Namespace }}
+            outcomes:
+              - fail:
+                  when: "< 1"
+                  message: "The PostgreSQL StatefulSet has no available replicas. GameShelf cannot persist data. Check the postgresql pod logs for startup errors."
+              - pass:
+                  message: PostgreSQL StatefulSet is running.
+        - statefulsetStatus:
+            name: {{ include "gameshelf.fullname" . }}-redis-master
+            namespace: {{ .Release.Namespace }}
+            outcomes:
+              - fail:
+                  when: "< 1"
+                  message: "The Redis StatefulSet has no available replicas. Leaderboard scores may not be cached. Check the redis-master pod logs for startup errors."
+              - pass:
+                  message: Redis StatefulSet is running.
+        - storageClass:
+            checkName: Default Storage Class
+            outcomes:
+              - pass:
+                  message: A default storage class is available for persistent volume claims.
+              - fail:
+                  message: "No default storage class found. GameShelf requires a default storage class for PostgreSQL and Redis persistent volumes. Configure a default storage class before installing GameShelf."
+        - nodeResources:
+            checkName: Node Readiness
+            outcomes:
+              - fail:
+                  when: "nodeCondition(Ready) == False"
+                  message: "One or more cluster nodes are not in a Ready state. This may prevent GameShelf pods from being scheduled. Check node status with: kubectl get nodes"
+              - pass:
+                  message: All cluster nodes are in a Ready state.

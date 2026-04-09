@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "gameshelf.fullname" . }}-preflight
+  labels:
+    {{- include "gameshelf.labels" . | nindent 4 }}
+    troubleshoot.sh/kind: preflight
+type: Opaque
+stringData:
+  preflight.yaml: |
+    apiVersion: troubleshoot.sh/v1beta2
+    kind: Preflight
+    metadata:
+      name: gameshelf-preflight
+    spec:
+      collectors:
+        - runPod:
+            collectorName: db-connection-check
+            image: postgres:15-alpine
+            command:
+              - sh
+              - -c
+              - pg_isready -h {{ .Values.externalDatabase.host }} -p {{ .Values.externalDatabase.port }} -U {{ .Values.externalDatabase.username }} -d {{ .Values.externalDatabase.database }} && echo CONNECTION_OK || echo CONNECTION_FAIL
+            exclude: {{ .Values.postgresql.enabled }}
+        - http:
+            collectorName: replicated-app-reachability
+            get:
+              url: https://replicated.app
+              timeout: 10s
+      analyzers:
+        - textAnalyze:
+            checkName: External Database Connectivity
+            fileName: run-pod/db-connection-check/stdout.log
+            regex: "CONNECTION_OK"
+            exclude: {{ .Values.postgresql.enabled }}
+            outcomes:
+              - pass:
+                  when: "true"
+                  message: Successfully connected to the external PostgreSQL database.
+              - fail:
+                  when: "false"
+                  message: "Cannot connect to PostgreSQL at {{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}. Verify the host, port, username, and password in your externalDatabase values."
+        - http:
+            checkName: Replicated App Reachability
+            collectorName: replicated-app-reachability
+            outcomes:
+              - pass:
+                  when: "statusCode == 200"
+                  message: Successfully reached replicated.app. License validation will work correctly.
+              - fail:
+                  when: "error"
+                  message: "Cannot reach replicated.app. Outbound internet access on port 443 is required for license validation. Check firewall or proxy settings."
+              - warn:
+                  message: "Received an unexpected response from replicated.app. License validation may be affected."
+        - nodeResources:
+            checkName: Cluster CPU Requirements
+            outcomes:
+              - fail:
+                  when: "sum(cpuCapacity) < 2"
+                  message: "GameShelf requires at least 2 CPU cores across all cluster nodes. Add more nodes or increase per-node CPU allocation to meet this requirement."
+              - pass:
+                  message: Cluster has sufficient CPU capacity for GameShelf.
+        - nodeResources:
+            checkName: Cluster Memory Requirements
+            outcomes:
+              - fail:
+                  when: "sum(memoryCapacity) < 4Gi"
+                  message: "GameShelf requires at least 4 GiB of memory across all cluster nodes. Add more nodes or increase per-node memory allocation to meet this requirement."
+              - pass:
+                  message: Cluster has sufficient memory for GameShelf.
+        - clusterVersion:
+            checkName: Kubernetes Version
+            outcomes:
+              - fail:
+                  when: "< 1.26.0"
+                  message: "GameShelf requires Kubernetes 1.26.0 or later. Your cluster version does not meet this requirement. Please upgrade your cluster before installing GameShelf."
+              - pass:
+                  message: "Kubernetes version meets the minimum requirement (1.26+)."
+        - distribution:
+            checkName: Supported Kubernetes Distribution
+            outcomes:
+              - fail:
+                  when: "== docker-desktop"
+                  message: "Docker Desktop is not a supported production environment for GameShelf. Please deploy to a supported distribution such as EKS, GKE, AKS, or k3s."
+              - fail:
+                  when: "== microk8s"
+                  message: "MicroK8s is not a supported production environment for GameShelf. Please deploy to a supported distribution such as EKS, GKE, AKS, or k3s."
+              - pass:
+                  message: Kubernetes distribution is supported.
