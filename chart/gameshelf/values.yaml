@@ -113,6 +113,12 @@ redis:
         cpu: 250m
         memory: 128Mi
 
+preflight:
+  minKubernetesVersion: "1.26.0"
+  minCPU: 2
+  minMemory: 4Gi
+  requiredEndpoint: "https://replicated.app"
+
 gameshelf-sdk:
   enabled: true
 
