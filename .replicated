@@ -7,7 +7,7 @@ channels:
   - name: Stable
 helm-charts:
   - name: gameshelf
-    path: chart/gameshelf
+    path: .
     values:
       - key: image.tag
         value: repl{{ .VersionLabel }}
