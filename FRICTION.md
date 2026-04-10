@@ -97,6 +97,10 @@
   6. Duplicate preflight: block in values.yaml — cosmetic, needs cleanup.
   7. Word search game bug — broken in browser.                             
                   
-  Items 1-4 are rubric-relevant. Want to circle back on any of these before
-   moving to Tier 4, or press forward?
-                     
+
+## EC3 friction
+1.  if you don't have configurations set up, the whole thing is stuck and the text reporting the error is very faint and hard to read.
+2.  it's not clear why I need a kots yaml file for an EC install
+3.  preflights on a fresh VM fail fast.  It seems there's easily scripted fixes we could provide to streamline the onboarding
+
+
