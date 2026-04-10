@@ -8,7 +8,7 @@ spec:
     chartVersion: ""
   values:
     image:
-      tag: repl{{ '{{' }} .VersionLabel {{ '}}' }}
+      tag: repl{{ .VersionLabel }}
     global:
       imagePullSecrets:
         - name: '{{repl ImagePullSecretName }}'
