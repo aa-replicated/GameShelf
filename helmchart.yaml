@@ -12,3 +12,5 @@ spec:
     global:
       imagePullSecrets:
         - name: '{{repl ImagePullSecretName }}'
+    adminSecret: '{{repl ConfigOption "admin_secret"}}'
+    siteName: '{{repl ConfigOption "site_name"}}'
