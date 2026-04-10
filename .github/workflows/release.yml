@@ -55,6 +55,7 @@ jobs:
           cp .replicated release/
           cp embedded-cluster-config.yaml release/
           cp helmchart.yaml release/
+          sed -i "s/chartVersion: \"\"/chartVersion: \"${{ env.VERSION }}\"/" release/helmchart.yaml
 
       - name: Create Replicated release
         id: create-release
