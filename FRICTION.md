@@ -99,4 +99,9 @@
                   
   Items 1-4 are rubric-relevant. Want to circle back on any of these before
    moving to Tier 4, or press forward?
-                     
+
+
+
+## EC3 experience
+1.  AI found docs saying we could provision an embedded cluster instance and install, but that's not supported for v3.  you just need a VM somewhere and then follow the instructions in the UI.  the docs probably need those instructions explicitly for CLI users. 
+2.  it's confusing that we need KOTS config/spec in EC.
