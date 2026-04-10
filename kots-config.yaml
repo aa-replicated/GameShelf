@@ -3,4 +3,17 @@ kind: Config
 metadata:
   name: gameshelf
 spec:
-  groups: []
+  groups:
+    - name: gameshelf
+      title: GameShelf
+      items:
+        - name: admin_secret
+          title: Admin Password
+          type: password
+          required: true
+          help_text: "Password for the GameShelf admin panel."
+        - name: site_name
+          title: Site Name
+          type: text
+          default: "GameShelf"
+          help_text: "The name displayed in the browser title and header."
