@@ -5,9 +5,3 @@ channels:
   - name: Unstable
   - name: Beta
   - name: Stable
-helm-charts:
-  - name: gameshelf
-    path: .
-    values:
-      - key: image.tag
-        value: repl{{ .VersionLabel }}
