@@ -54,6 +54,7 @@ jobs:
         run: |
           cp .replicated release/
           cp embedded-cluster-config.yaml release/
+          cp helmchart.yaml release/
 
       - name: Create Replicated release
         id: create-release
