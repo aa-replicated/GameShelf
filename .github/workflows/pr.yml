@@ -60,6 +60,7 @@ jobs:
           cp helmchart.yaml release/
           sed -i "s/chartVersion: \"\"/chartVersion: \"${{ env.CHART_VERSION }}\"/" release/helmchart.yaml
           cp kots-config.yaml release/
+          cp kots-app.yaml release/
 
       - name: Create Replicated release
         id: create-release
