@@ -5,6 +5,7 @@ metadata:
 spec:
   chart:
     name: gameshelf
+    chartVersion: "0.0.0"
   values:
     image:
       tag: repl{{ .VersionLabel }}
