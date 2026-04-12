@@ -68,7 +68,7 @@ stringData:
                   message: "GameShelf health endpoint is not responding or returning an unhealthy status. Check the gameshelf-app logs for startup errors or crashes."
         - textAnalyze:
             checkName: Database Connection Errors
-            fileName: gameshelf-app/*.log
+            fileName: "*/gameshelf.log"
             regex: "connection refused|no such host|dial tcp.*connect: connection refused"
             outcomes:
               - fail:

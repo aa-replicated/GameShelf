@@ -31,7 +31,7 @@ stringData:
       analyzers:
         - textAnalyze:
             checkName: External Database Connectivity
-            fileName: db-connection-check/check.log
+            fileName: db-connection-check.log
             regex: "CONNECTION_OK"
             exclude: {{ .Values.postgresql.enabled }}
             outcomes:
