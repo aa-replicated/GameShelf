@@ -7,8 +7,6 @@ spec:
     name: gameshelf
     chartVersion: "0.0.0"
   values:
-    gameshelf-sdk:
-      enabled: false
     adminSecret: repl{{ ConfigOption `admin_secret`}}
     siteName: repl{{ ConfigOption `site_name`}}
   builder:
