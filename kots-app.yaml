@@ -4,7 +4,7 @@ metadata:
   name: gameshelf
 spec:
   title: GameShelf
-  icon: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Classic_Game_Controller_Icon.svg/240px-Classic_Game_Controller_Icon.svg.png
+  icon: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Classic_Game_Controller_Icon.svg/512px-Classic_Game_Controller_Icon.svg.png
   statusInformers:
     - deployment/gameshelf
     - statefulset/gameshelf-postgresql
