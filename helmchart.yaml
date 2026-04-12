@@ -7,7 +7,7 @@ spec:
     name: gameshelf
     chartVersion: "0.0.0"
   values:
-    replicated:
+    gameshelf-sdk:
       integrationLicenseID: repl{{ LicenseFieldValue `licenseID` }}
     adminSecret: repl{{ ConfigOption `admin_secret`}}
     siteName: repl{{ ConfigOption `site_name`}}

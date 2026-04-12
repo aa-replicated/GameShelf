@@ -120,7 +120,7 @@ preflight:
   minMemory: 4Gi
   requiredEndpoint: "https://replicated.app"
 
-replicated:
+gameshelf-sdk:
   enabled: true
 
 # --- BYO Redis ---
