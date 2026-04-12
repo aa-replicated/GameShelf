@@ -9,9 +9,6 @@ spec:
   values:
     adminSecret: repl{{ ConfigOption `admin_secret`}}
     siteName: repl{{ ConfigOption `site_name`}}
-    global:
-      imagePullSecrets:
-        - name: repl{{ ImagePullSecretName }}
   builder:
     image:
       tag: latest
