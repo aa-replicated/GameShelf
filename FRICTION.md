@@ -98,6 +98,20 @@
   7. Word search game bug — broken in browser.                             
                   
 
+## Airgap friction
+
+### Airgap bundle 400 with correct credentials and customer settings
+- Trying to do: Download EC airgap bundle via `curl https://replicated.app/embedded/gameshelf/unstable/0.1.64?airgap=true`
+- Expected: Bundle downloads once customer has `airgap=true` and `isEmbeddedClusterDownloadEnabled=true`
+- Actual: HTTP 400, even with both customer flags enabled and valid license auth
+- Resolution: Two separate settings required that are not clearly linked in docs:
+  1. **Channel-level**: Vendor Portal → Channels → Edit → "Automatically create airgap builds for newly promoted releases" must be enabled
+  2. **Customer-level**: "Airgap Download Enabled" on the license
+  Without the channel setting, no airgap bundle is ever built regardless of customer settings.
+  Alternatively: go to Releases → find the release → manually trigger airgap bundle build.
+- Severity: Blocker. Customer setting alone is insufficient and misleadingly named. Spent ~30 min debugging with CLI inspection before finding the channel setting.
+- Also: URL format without version (`/embedded/gameshelf/unstable?airgap=true`) works; with explicit version label also works once bundle is built.
+
 ## EC3 friction
 1.  if you don't have configurations set up, the whole thing is stuck and the text reporting the error is very faint and hard to read.
 2.  it's not clear why I need a kots yaml file for an EC install
