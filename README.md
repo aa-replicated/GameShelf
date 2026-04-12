@@ -219,6 +219,78 @@ The `IDENTITY_SECRET` is displayed (masked) in the Admin panel under **Player Id
 
 GameShelf itself listens on plain HTTP. Terminate TLS at your reverse proxy, ingress controller, or load balancer and forward plain HTTP to GameShelf. If you're using the dedicated subdomain option, your proxy (nginx, Caddy, etc.) handles the certificate — Caddy does this automatically.
 
+## Helm Install (Replicated)
+
+Installing directly via Helm from the Replicated registry (not via KOTS/Embedded Cluster).
+
+### Prerequisites
+
+- A Replicated customer license ID (Vendor Portal → Customers → click customer → License ID)
+- A Replicated customer email address
+- `helm` v3.8+, `kubectl` pointed at your target cluster
+
+### Install
+
+```bash
+# 1. Create the namespace
+kubectl create namespace gameshelf
+
+# 2. Create the image pull secret (required for proxied images)
+kubectl create secret docker-registry enterprise-pull-secret \
+  --docker-server=proxy.adamanthony.dev \
+  --docker-username=<customer-email> \
+  --docker-password=<license-id> \
+  -n gameshelf
+
+# 3. Log into the Replicated OCI registry
+helm registry login registry.replicated.com \
+  --username <customer-email> \
+  --password <license-id>
+
+# 4. Install
+helm install gameshelf \
+  oci://registry.replicated.com/gameshelf/unstable/gameshelf \
+  --version <chart-version> \
+  --namespace gameshelf \
+  --set adminSecret=<your-admin-password> \
+  --set "gameshelf-sdk.integration.licenseID=<license-id>" \
+  --set "gameshelf-sdk.integration.enabled=true"
+```
+
+> The chart version for each release is visible in the Vendor Portal under Releases, or in the GitHub Actions run log.
+
+### Upgrade
+
+```bash
+helm upgrade gameshelf \
+  oci://registry.replicated.com/gameshelf/unstable/gameshelf \
+  --version <new-chart-version> \
+  --reuse-values
+```
+
+### Access the app
+
+```bash
+kubectl port-forward svc/gameshelf 8080:80 -n gameshelf
+```
+
+Then open http://localhost:8080. Admin panel: http://localhost:8080/admin?token=<your-admin-password>
+
+### Common overrides
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `adminSecret` | `changeme` | Admin panel password |
+| `siteName` | `GameShelf` | Site name shown in the UI |
+| `service.type` | `ClusterIP` | Set to `NodePort` or `LoadBalancer` to expose externally |
+| `service.nodePort` | `""` | NodePort port number (e.g. `30080`) |
+| `ingress.enabled` | `false` | Enable ingress |
+| `ingress.host` | `""` | Hostname for ingress (required when enabled) |
+| `postgresql.enabled` | `true` | Use embedded PostgreSQL; set to `false` for external DB |
+| `redis.enabled` | `true` | Use embedded Redis; set to `false` for external Redis |
+| `gameshelf-sdk.integration.licenseID` | `""` | License ID for SDK integration mode (direct Helm installs) |
+| `gameshelf-sdk.integration.enabled` | `false` | Enable SDK integration mode (direct Helm installs) |
+
 ## Architecture
 
 ```

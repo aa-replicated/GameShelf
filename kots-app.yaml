@@ -6,3 +6,5 @@ spec:
   title: GameShelf
   statusInformers:
     - deployment/gameshelf
+    - statefulset/gameshelf-postgresql
+    - statefulset/gameshelf-redis-master
