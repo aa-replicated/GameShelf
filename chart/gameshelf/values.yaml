@@ -10,7 +10,7 @@ global:
 imagePullSecrets: []
 
 imageProxy:
-  host: proxy.replicated.com
+  host: proxy.adamanthony.dev
   appSlug: gameshelf
 
 image:
