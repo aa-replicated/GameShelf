@@ -105,6 +105,32 @@
   </form>
 </section>
 
+<!-- Support Bundle -->
+<section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+  <h2 class="text-lg font-bold text-gray-900 mb-2">Support</h2>
+  <p class="text-sm text-gray-500 mb-4">
+    Generate a diagnostic bundle and upload it automatically to the Vendor Portal.
+    The bundle will appear on the Instance Details page for this customer.
+  </p>
+  {{ if .SupportBundleSlug }}
+  <div class="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm">
+    Bundle uploaded successfully. Bundle ID: <span class="font-mono">{{ .SupportBundleSlug }}</span>
+  </div>
+  {{ end }}
+  {{ if .SupportBundleError }}
+  <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+    {{ .SupportBundleError }}
+  </div>
+  {{ end }}
+  <form method="POST" action="/admin/support-bundle{{ if .Token }}?token={{ .Token }}{{ end }}">
+    <button type="submit"
+            class="px-4 py-2 rounded-lg text-white font-semibold text-sm"
+            style="background-color: var(--color-primary)">
+      Generate Support Bundle
+    </button>
+  </form>
+</section>
+
 <!-- Games Management -->
 <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
   <h2 class="text-lg font-bold text-gray-900 mb-4">Games</h2>

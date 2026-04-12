@@ -42,6 +42,8 @@ func (s *Server) adminHandler(w http.ResponseWriter, r *http.Request) {
 	data.AllGames = games
 	data.DBScores = allScores
 	data.Token = r.URL.Query().Get("token") // preserve token for form actions
+	data.SupportBundleSlug = r.URL.Query().Get("bundle")
+	data.SupportBundleError = r.URL.Query().Get("bundle_error")
 
 	// Mask the identity secret for display.
 	if secret, err := s.getOrCreateIdentitySecret(); err == nil && secret != "" {
@@ -137,6 +139,37 @@ func (s *Server) logoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 	w.Write(data) //nolint:errcheck
+}
+
+// POST /admin/support-bundle — trigger support bundle collection and upload to Vendor Portal
+func (s *Server) supportBundleHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	q := url.Values{}
+	if token != "" {
+		q.Set("token", token)
+	}
+
+	if !s.sdk.Available() {
+		q.Set("bundle_error", "SDK unavailable — support bundle upload requires the Replicated SDK sidecar")
+		http.Redirect(w, r, "/admin?"+q.Encode(), http.StatusSeeOther)
+		return
+	}
+
+	licenseInfo, _ := s.sdk.GetLicenseInfo(r.Context())
+	result, err := s.sdk.TriggerSupportBundleUpload(r.Context(), licenseInfo)
+	if err != nil {
+		log.Printf("admin: support bundle: %v", err)
+		q.Set("bundle_error", err.Error())
+		http.Redirect(w, r, "/admin?"+q.Encode(), http.StatusSeeOther)
+		return
+	}
+
+	id := result.Slug
+	if id == "" {
+		id = result.BundleID
+	}
+	q.Set("bundle", id)
+	http.Redirect(w, r, "/admin?"+q.Encode(), http.StatusSeeOther)
 }
 
 // POST /admin/logo — upload a new logo image

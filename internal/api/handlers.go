@@ -34,6 +34,9 @@ type PageData struct {
 	AllGames             []db.Game
 	Site                 *db.Site
 	IdentitySecretMasked string // shown (masked) on admin panel
+	// Support bundle result (populated from query params after POST /admin/support-bundle)
+	SupportBundleSlug  string
+	SupportBundleError string
 }
 
 // pageBase fills the branding fields from the DB and SDK banner state.
