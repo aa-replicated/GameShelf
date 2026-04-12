@@ -92,6 +92,10 @@ func (s *Server) toggleGameHandler(w http.ResponseWriter, r *http.Request) {
 
 // POST /admin/branding — update site branding
 func (s *Server) updateBrandingHandler(w http.ResponseWriter, r *http.Request) {
+	if !s.cfg.CustomBrandingEnabled {
+		http.Error(w, "Custom branding requires an upgraded license", http.StatusForbidden)
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
@@ -141,6 +145,10 @@ func (s *Server) logoHandler(w http.ResponseWriter, r *http.Request) {
 
 // POST /admin/logo — upload a new logo image
 func (s *Server) uploadLogoHandler(w http.ResponseWriter, r *http.Request) {
+	if !s.cfg.CustomBrandingEnabled {
+		http.Error(w, "Custom branding requires an upgraded license", http.StatusForbidden)
+		return
+	}
 	r.Body = http.MaxBytesReader(w, r.Body, 2<<20) // 2MB
 	if err := r.ParseMultipartForm(2 << 20); err != nil {
 		http.Error(w, "file too large (max 2MB)", http.StatusBadRequest)

@@ -33,7 +33,8 @@ type PageData struct {
 	DBScores             []db.Score
 	AllGames             []db.Game
 	Site                 *db.Site
-	IdentitySecretMasked string // shown (masked) on admin panel
+	IdentitySecretMasked  string // shown (masked) on admin panel
+	CustomBrandingEnabled bool   // true when custom_branding_enabled license field is "true"
 }
 
 // pageBase fills the branding fields from the DB and SDK banner state.
@@ -43,7 +44,7 @@ func (s *Server) pageBase(r *http.Request) PageData {
 	if err != nil || site == nil {
 		data = PageData{
 			SiteName:        s.cfg.SiteName,
-			PrimaryColor:    "#3B82F6",
+			PrimaryColor:    s.cfg.SiteColor,
 			SecondaryColor:  "#1E40AF",
 			BackgroundColor: "#F9FAFB",
 			FontFamily:      "system",
@@ -59,6 +60,8 @@ func (s *Server) pageBase(r *http.Request) PageData {
 			Site:            site,
 		}
 	}
+
+	data.CustomBrandingEnabled = s.cfg.CustomBrandingEnabled
 
 	// Populate SDK banners (fail-open: errors are logged and ignored)
 	if s.sdk.Available() {

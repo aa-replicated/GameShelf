@@ -17,3 +17,16 @@ spec:
           type: text
           default: "GameShelf"
           help_text: "The name displayed in the browser title and header."
+    - name: branding
+      title: Branding
+      when: '{{repl LicenseFieldValue "custom_branding_enabled" | eq "true"}}'
+      items:
+        - name: site_color
+          title: Primary Color
+          type: text
+          default: "#3B82F6"
+          help_text: "Primary color for the GameShelf UI (hex format, e.g. #3B82F6). Requires the Custom Branding license entitlement."
+          validation:
+            regex:
+              pattern: '^#[0-9A-Fa-f]{6}$'
+              message: "Must be a valid hex color code (e.g. #3B82F6)"
