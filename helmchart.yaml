@@ -8,9 +8,9 @@ spec:
     chartVersion: "0.0.0"
   values:
     image:
-      tag: 'repl{{ .VersionLabel }}'
-    global:
-      imagePullSecrets:
-        - name: '{{repl ImagePullSecretName }}'
-    adminSecret: '{{repl ConfigOption "admin_secret"}}'
-    siteName: '{{repl ConfigOption "site_name"}}'
+      tag: repl{{ .VersionLabel }}
+    adminSecret: repl{{ ConfigOption `admin_secret`}}
+    siteName: repl{{ ConfigOption `site_name`}}
+  builder:
+    image:
+      tag: latest
