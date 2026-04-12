@@ -7,10 +7,9 @@ appVersion: "0.1.0"
 
 dependencies:
   - name: replicated
-    alias: gameshelf-sdk
     version: ~1.19
     repository: oci://registry.replicated.com/library
-    condition: gameshelf-sdk.enabled
+    condition: replicated.enabled
   - name: postgresql
     version: ~18.5
     repository: https://charts.bitnami.com/bitnami
