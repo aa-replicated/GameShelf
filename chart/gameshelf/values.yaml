@@ -122,6 +122,8 @@ preflight:
 
 gameshelf-sdk:
   enabled: true
+  image:
+    registry: proxy.adamanthony.dev
 
 # --- BYO Redis ---
 externalRedis:
