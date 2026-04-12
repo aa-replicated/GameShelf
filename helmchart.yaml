@@ -8,7 +8,9 @@ spec:
     chartVersion: "0.0.0"
   values:
     gameshelf-sdk:
-      integrationLicenseID: repl{{ LicenseFieldValue `licenseID` }}
+      integration:
+        licenseID: repl{{ LicenseFieldValue `licenseID` }}
+        enabled: true
     adminSecret: repl{{ ConfigOption `admin_secret`}}
     siteName: repl{{ ConfigOption `site_name`}}
   builder:
