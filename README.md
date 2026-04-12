@@ -247,17 +247,21 @@ helm registry login registry.replicated.com \
   --username <customer-email> \
   --password <license-id>
 
-# 4. Install
+# 4. Install (NodePort for direct access, integration mode for SDK)
 helm install gameshelf \
   oci://registry.replicated.com/gameshelf/unstable/gameshelf \
   --version <chart-version> \
   --namespace gameshelf \
   --set adminSecret=<your-admin-password> \
   --set "gameshelf-sdk.integration.licenseID=<license-id>" \
-  --set "gameshelf-sdk.integration.enabled=true"
+  --set "gameshelf-sdk.integration.enabled=true" \
+  --set "gameshelf-sdk.image.registry=proxy.adamanthony.dev" \
+  --set service.type=NodePort \
+  --set service.nodePort=30080
 ```
 
 > The chart version for each release is visible in the Vendor Portal under Releases, or in the GitHub Actions run log.
+> The image tag for PR-based releases is `pr-<pr-number>` (e.g. `pr-39`). Pass `--set image.tag=pr-<N>` if the chart appVersion doesn't match.
 
 ### Upgrade
 
@@ -268,13 +272,24 @@ helm upgrade gameshelf \
   --reuse-values
 ```
 
+> If changing chart version without a new image, `--reuse-values` is sufficient.
+> If the new chart has a new image tag (e.g. new PR number), add `--set image.tag=pr-<N>`.
+
 ### Access the app
 
+NodePort (if installed with `service.type=NodePort`):
 ```bash
-kubectl port-forward svc/gameshelf 8080:80 -n gameshelf
+kubectl get nodes -o wide   # get node IP
+# open http://<node-ip>:30080
 ```
 
-Then open http://localhost:8080. Admin panel: http://localhost:8080/admin?token=<your-admin-password>
+Port-forward (if using ClusterIP):
+```bash
+kubectl port-forward svc/gameshelf 8080:80 -n gameshelf
+# open http://localhost:8080
+```
+
+Admin panel: `http://<host>/admin?token=<your-admin-password>`
 
 ### Common overrides
 
@@ -282,6 +297,7 @@ Then open http://localhost:8080. Admin panel: http://localhost:8080/admin?token=
 |-------|---------|-------------|
 | `adminSecret` | `changeme` | Admin panel password |
 | `siteName` | `GameShelf` | Site name shown in the UI |
+| `image.tag` | (chart appVersion) | Override image tag — needed when PR image tag differs from appVersion |
 | `service.type` | `ClusterIP` | Set to `NodePort` or `LoadBalancer` to expose externally |
 | `service.nodePort` | `""` | NodePort port number (e.g. `30080`) |
 | `ingress.enabled` | `false` | Enable ingress |
@@ -290,6 +306,92 @@ Then open http://localhost:8080. Admin panel: http://localhost:8080/admin?token=
 | `redis.enabled` | `true` | Use embedded Redis; set to `false` for external Redis |
 | `gameshelf-sdk.integration.licenseID` | `""` | License ID for SDK integration mode (direct Helm installs) |
 | `gameshelf-sdk.integration.enabled` | `false` | Enable SDK integration mode (direct Helm installs) |
+| `gameshelf-sdk.image.registry` | `proxy.replicated.com` | Override SDK image registry — set to `proxy.adamanthony.dev` for custom proxy |
+
+### Known gotchas
+
+- **Image tag mismatch**: PR workflow pushes image as `pr-<N>` but sets `appVersion` to `pr-<N>-<run>`. Always pass `--set image.tag=pr-<N>` explicitly.
+- **Pull secret**: KOTS creates `enterprise-pull-secret` automatically. Direct Helm installs require creating it manually before install.
+- **SDK integration mode**: Direct Helm installs bypass KOTS license injection. Always pass `gameshelf-sdk.integration.licenseID` and `gameshelf-sdk.integration.enabled=true`. The value path is `integration.licenseID`, NOT `integrationLicenseID`.
+- **SDK image proxy**: The SDK subchart defaults to `proxy.replicated.com` for its own image. Override with `gameshelf-sdk.image.registry=proxy.adamanthony.dev` to satisfy the custom proxy requirement.
+- **Stale pull secret**: If `enterprise-pull-secret` exists from a prior session, delete and recreate it — credentials may be stale.
+
+## Preflight Checks
+
+Run against the live cluster:
+```bash
+kubectl preflight secret/gameshelf/gameshelf-preflight
+```
+
+### Demo failure scenario (helm template — no cluster changes needed)
+
+```bash
+helm template gameshelf chart/gameshelf \
+  --set preflight.requiredEndpoint=https://bad.example.invalid \
+  --set preflight.minCPU=9999 \
+  --set preflight.minMemory=9999Gi \
+  --set preflight.minKubernetesVersion=99.99.0 \
+  --set postgresql.enabled=false \
+  --set externalDatabase.host=db.example.invalid \
+  --set externalDatabase.port=5432 \
+  -s templates/preflight.yaml | kubectl preflight -
+```
+
+### Demo pass scenario
+
+```bash
+kubectl preflight secret/gameshelf/gameshelf-preflight
+```
+
+## Support Bundle
+
+### Run from laptop (most analyzers; health check will timeout — expected)
+
+```bash
+kubectl support-bundle --load-cluster-specs --namespace gameshelf
+```
+
+### Run from inside cluster (health check passes; requires RBAC setup below)
+
+```bash
+# One-time RBAC setup
+kubectl create role support-bundle-role \
+  --verb=get,list \
+  --resource=secrets,pods,pods/log,configmaps \
+  -n gameshelf
+
+kubectl create rolebinding support-bundle-binding \
+  --role=support-bundle-role \
+  --serviceaccount=gameshelf:default \
+  -n gameshelf
+
+# Run bundle
+kubectl delete pod support-bundle-runner -n gameshelf 2>/dev/null
+kubectl run support-bundle-runner -it --rm \
+  --image=replicated/troubleshoot:latest \
+  --restart=Never \
+  -n gameshelf \
+  -- support-bundle secret/gameshelf/gameshelf-support-bundle
+```
+
+### Demo: induce deploymentStatus failure (3.4)
+
+```bash
+kubectl scale deployment gameshelf -n gameshelf --replicas=0
+# run bundle — gameshelf Status will be red with actionable message
+kubectl scale deployment gameshelf -n gameshelf --replicas=1
+```
+
+### Demo: induce DB error textAnalyze (3.5)
+
+```bash
+# Point app at non-existent DB — generates connection refused logs
+helm upgrade gameshelf ... --set postgresql.enabled=false \
+  --set externalDatabase.host=db.example.invalid \
+  --set externalDatabase.port=5432
+# run bundle — Database Connection Errors analyzer fires
+# restore with postgresql.enabled=true when done
+```
 
 ## Architecture
 
