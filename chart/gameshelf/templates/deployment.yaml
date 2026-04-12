@@ -62,7 +62,7 @@ spec:
                   name: {{ include "gameshelf.fullname" . }}
                   key: admin-secret
             - name: SDK_SERVICE_URL
-              value: "http://replicated:3000"
+              value: "http://gameshelf-sdk:3000"
           livenessProbe:
             httpGet:
               path: /healthz

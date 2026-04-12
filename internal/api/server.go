@@ -90,6 +90,7 @@ func (s *Server) Handler() http.Handler {
 		r.Post("/admin/branding", s.updateBrandingHandler)
 		r.Post("/admin/logo", s.uploadLogoHandler)
 		r.Post("/admin/identity/regenerate", s.regenerateIdentitySecretHandler)
+		r.Post("/admin/support-bundle", s.supportBundleHandler)
 	})
 
 	// Health

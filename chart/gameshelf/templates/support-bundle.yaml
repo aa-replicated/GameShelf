@@ -42,9 +42,9 @@ stringData:
               maxLines: 5000
               maxAge: 72h
         - logs:
-            collectorName: replicated-sdk
+            collectorName: gameshelf-sdk
             selector:
-              - app=replicated
+              - app=gameshelf-sdk
             namespace: {{ .Release.Namespace }}
             limits:
               maxLines: 5000
@@ -68,7 +68,7 @@ stringData:
                   message: "GameShelf health endpoint is not responding or returning an unhealthy status. Check the gameshelf-app logs for startup errors or crashes."
         - textAnalyze:
             checkName: Database Connection Errors
-            fileName: gameshelf-app/*.log
+            fileName: "*/gameshelf.log"
             regex: "connection refused|no such host|dial tcp.*connect: connection refused"
             outcomes:
               - fail:
@@ -87,12 +87,12 @@ stringData:
               - pass:
                   message: GameShelf deployment is running with at least one available replica.
         - deploymentStatus:
-            name: replicated
+            name: gameshelf-sdk
             namespace: {{ .Release.Namespace }}
             outcomes:
               - fail:
                   when: "< 1"
-                  message: "The Replicated SDK deployment has no available replicas. License validation and entitlement checks may not work. Check the replicated pod logs."
+                  message: "The Replicated SDK deployment has no available replicas. License validation and entitlement checks may not work. Check the gameshelf-sdk pod logs."
               - pass:
                   message: Replicated SDK deployment is running.
         - statefulsetStatus:
