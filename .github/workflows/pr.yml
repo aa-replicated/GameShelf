@@ -43,7 +43,9 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/aa-replicated/gameshelf:pr-${{ github.event.pull_request.number }}
+          tags: |
+            ghcr.io/aa-replicated/gameshelf:pr-${{ github.event.pull_request.number }}
+            ghcr.io/aa-replicated/gameshelf:pr-${{ github.event.pull_request.number }}-${{ github.run_number }}
 
       - name: Package Helm chart
         run: |
