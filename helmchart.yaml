@@ -13,6 +13,22 @@ spec:
     siteName: repl{{ ConfigOption `site_name`}}
     siteColor: repl{{ ConfigOption `site_color`}}
     customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
+    imageProxy:
+      host: ""
+    image:
+      pullPolicy: IfNotPresent
+    postgresql:
+      image:
+        registry: ""
+    redis:
+      image:
+        registry: ""
   builder:
     image:
       tag: latest
+    postgresql:
+      image:
+        registry: "docker.io"
+    redis:
+      image:
+        registry: "docker.io"
