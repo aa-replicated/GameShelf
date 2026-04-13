@@ -25,13 +25,14 @@ stringData:
             exclude: {{ .Values.postgresql.enabled }}
         - http:
             collectorName: replicated-app-reachability
+            exclude: {{ .Values.preflight.excludeReachability }}
             get:
               url: {{ .Values.preflight.requiredEndpoint }}
               timeout: 10s
       analyzers:
         - textAnalyze:
             checkName: External Database Connectivity
-            fileName: db-connection-check/check.log
+            fileName: db-connection-check.log
             regex: "CONNECTION_OK"
             exclude: {{ .Values.postgresql.enabled }}
             outcomes:
@@ -44,6 +45,7 @@ stringData:
         - http:
             checkName: Replicated App Reachability
             collectorName: replicated-app-reachability
+            exclude: {{ .Values.preflight.excludeReachability }}
             outcomes:
               - pass:
                   when: "statusCode == 200"

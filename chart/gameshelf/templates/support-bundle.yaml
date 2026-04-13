@@ -44,7 +44,7 @@ stringData:
         - logs:
             collectorName: replicated-sdk
             selector:
-              - app=replicated
+              - app.kubernetes.io/name=replicated
             namespace: {{ .Release.Namespace }}
             limits:
               maxLines: 5000
@@ -68,7 +68,7 @@ stringData:
                   message: "GameShelf health endpoint is not responding or returning an unhealthy status. Check the gameshelf-app logs for startup errors or crashes."
         - textAnalyze:
             checkName: Database Connection Errors
-            fileName: gameshelf-app/*.log
+            fileName: "*/gameshelf.log"
             regex: "connection refused|no such host|dial tcp.*connect: connection refused"
             outcomes:
               - fail:
