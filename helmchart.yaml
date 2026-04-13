@@ -11,6 +11,8 @@ spec:
       integrationLicenseID: repl{{ LicenseFieldValue `licenseID` }}
     adminSecret: repl{{ ConfigOption `admin_secret`}}
     siteName: repl{{ ConfigOption `site_name`}}
+    siteColor: repl{{ ConfigOption `site_color`}}
+    customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
   builder:
     image:
       tag: latest

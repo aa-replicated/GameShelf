@@ -63,6 +63,8 @@ resources:
 
 siteName: "GameShelf"
 adminSecret: "changeme"  # REQUIRED — set a strong secret, e.g. --set adminSecret=... or in a values override
+siteColor: "#3B82F6"
+customBrandingEnabled: "false"
 
 # --- Embedded PostgreSQL (Bitnami subchart) ---
 postgresql:

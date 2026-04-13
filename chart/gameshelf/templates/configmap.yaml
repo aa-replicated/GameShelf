@@ -7,3 +7,5 @@ metadata:
 data:
   port: "8080"
   site-name: {{ .Values.siteName | quote }}
+  site-color: {{ .Values.siteColor | default "#3B82F6" | quote }}
+  custom-branding-enabled: {{ .Values.customBrandingEnabled | quote }}

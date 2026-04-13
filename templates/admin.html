@@ -5,6 +5,7 @@
 {{ define "content" }}
 <h1 class="text-3xl font-extrabold text-gray-900 mb-8">Admin Panel</h1>
 
+{{ if .CustomBrandingEnabled }}
 <!-- Branding Section -->
 <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
   <h2 class="text-lg font-bold text-gray-900 mb-4">Site Branding</h2>
@@ -83,6 +84,7 @@
     </button>
   </form>
 </section>
+{{ end }}
 
 <!-- Identity Section -->
 <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">

@@ -9,8 +9,10 @@ type Config struct {
 	Port           string
 	SiteName       string
 	IdentitySecret string // optional; auto-generated and stored in DB if empty
-	SDKServiceURL  string // URL of Replicated SDK sidecar, e.g. http://localhost:3000
-	LocalDev       bool   // LOCAL_DEV=true bypasses SDK gates when SDK_SERVICE_URL is unset
+	SDKServiceURL         string // URL of Replicated SDK sidecar, e.g. http://localhost:3000
+	LocalDev              bool   // LOCAL_DEV=true bypasses SDK gates when SDK_SERVICE_URL is unset
+	SiteColor             string // default primary color (hex), overridden by DB branding settings
+	CustomBrandingEnabled bool   // set by LicenseFieldValue custom_branding_enabled via KOTS
 }
 
 func Load() Config {
@@ -22,6 +24,10 @@ func Load() Config {
 	if siteName == "" {
 		siteName = "GameShelf"
 	}
+	siteColor := os.Getenv("SITE_COLOR")
+	if siteColor == "" {
+		siteColor = "#3B82F6"
+	}
 	adminSecret := os.Getenv("ADMIN_SECRET")
 	if adminSecret == "" {
 		adminSecret = "changeme"
@@ -32,8 +38,10 @@ func Load() Config {
 		AdminSecret:    adminSecret,
 		Port:           port,
 		SiteName:       siteName,
-		IdentitySecret: os.Getenv("IDENTITY_SECRET"),
-		SDKServiceURL:  os.Getenv("SDK_SERVICE_URL"),
-		LocalDev:       os.Getenv("LOCAL_DEV") == "true",
+		IdentitySecret:        os.Getenv("IDENTITY_SECRET"),
+		SDKServiceURL:         os.Getenv("SDK_SERVICE_URL"),
+		LocalDev:              os.Getenv("LOCAL_DEV") == "true",
+		SiteColor:             siteColor,
+		CustomBrandingEnabled: os.Getenv("CUSTOM_BRANDING_ENABLED") == "true",
 	}
 }

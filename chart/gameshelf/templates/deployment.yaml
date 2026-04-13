@@ -61,6 +61,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "gameshelf.fullname" . }}
                   key: admin-secret
+            - name: SITE_COLOR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "gameshelf.fullname" . }}
+                  key: site-color
+            - name: CUSTOM_BRANDING_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "gameshelf.fullname" . }}
+                  key: custom-branding-enabled
             - name: SDK_SERVICE_URL
               value: "http://replicated:3000"
           livenessProbe:
