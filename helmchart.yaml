@@ -24,8 +24,6 @@ spec:
       image:
         registry: ""
   builder:
-    image:
-      tag: latest
     postgresql:
       image:
         registry: "docker.io"
