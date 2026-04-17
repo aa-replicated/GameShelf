@@ -12,18 +12,18 @@ spec:
     siteColor: repl{{ ConfigOption `site_color`}}
     customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
     image:
-      registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/ghcr.io/aa-replicated/gameshelf" }}'
-      repository: 'repl{{ ReplicatedImageRepository "proxy.replicated.com/proxy/gameshelf/ghcr.io/aa-replicated/gameshelf" }}'
+      registry: 'repl{{ ReplicatedImageRegistry "ghcr.io/aa-replicated/gameshelf" }}'
+      repository: 'repl{{ ReplicatedImageRepository "ghcr.io/aa-replicated/gameshelf" }}'
       pullPolicy: IfNotPresent
     postgresql:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
       volumePermissions:
         image:
-          registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
     redis:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
   builder:
     postgresql:
       image:
