@@ -17,13 +17,16 @@ spec:
       pullPolicy: IfNotPresent
     postgresql:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/postgresql" }}'
+        repository: 'repl{{ ReplicatedImageRepository "index.docker.io/bitnami/postgresql" }}'
       volumePermissions:
         image:
-          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/os-shell" }}'
+          repository: 'repl{{ ReplicatedImageRepository "index.docker.io/bitnami/os-shell" }}'
     redis:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/redis" }}'
+        repository: 'repl{{ ReplicatedImageRepository "index.docker.io/bitnami/redis" }}'
   builder:
     postgresql:
       image:
