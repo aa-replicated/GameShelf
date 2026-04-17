@@ -121,6 +121,7 @@ preflight:
   minCPU: 2
   minMemory: 4Gi
   requiredEndpoint: "https://replicated.app"
+  excludeReachability: false
 
 replicated:
   enabled: true
