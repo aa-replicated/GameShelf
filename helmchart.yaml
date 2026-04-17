@@ -15,6 +15,10 @@ spec:
       registry: 'repl{{ ReplicatedImageRegistry "ghcr.io/aa-replicated/gameshelf" }}'
       repository: 'repl{{ ReplicatedImageRepository "ghcr.io/aa-replicated/gameshelf" }}'
       pullPolicy: IfNotPresent
+    replicated:
+      image:
+        registry: 'repl{{ ReplicatedImageRegistry "registry.replicated.com/library/replicated-sdk-image" }}'
+        repository: 'repl{{ ReplicatedImageRepository "registry.replicated.com/library/replicated-sdk-image" }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/postgresql" }}'
