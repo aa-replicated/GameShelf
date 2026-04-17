@@ -8,24 +8,22 @@ spec:
     chartVersion: "0.0.0"
   values:
     adminSecret: repl{{ ConfigOption `admin_secret`}}
-    preflight:
-      excludeReachability: repl{{ and IsEmbeddedCluster (not IsOnline) }}
     siteName: repl{{ ConfigOption `site_name`}}
     siteColor: repl{{ ConfigOption `site_color`}}
     customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
-    imageProxy:
-      host: ""
     image:
+      registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/ghcr.io/aa-replicated/gameshelf" }}'
+      repository: 'repl{{ ReplicatedImageRepository "proxy.replicated.com/proxy/gameshelf/ghcr.io/aa-replicated/gameshelf" }}'
       pullPolicy: IfNotPresent
     postgresql:
       image:
-        registry: ""
+        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
       volumePermissions:
         image:
-          registry: ""
+          registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
     redis:
       image:
-        registry: ""
+        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/proxy/gameshelf/index.docker.io" }}'
   builder:
     postgresql:
       image:

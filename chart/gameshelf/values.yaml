@@ -14,6 +14,7 @@ imageProxy:
   appSlug: gameshelf
 
 image:
+  registry: ""  # When set, used directly as registry (EC installs set this via helmchart.yaml)
   repository: ghcr.io/aa-replicated/gameshelf
   tag: ""
   pullPolicy: Always
@@ -121,7 +122,6 @@ preflight:
   minCPU: 2
   minMemory: 4Gi
   requiredEndpoint: "https://replicated.app"
-  excludeReachability: false
 
 replicated:
   enabled: true
