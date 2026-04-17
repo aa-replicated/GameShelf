@@ -25,7 +25,6 @@ stringData:
             exclude: {{ .Values.postgresql.enabled }}
         - http:
             collectorName: replicated-app-reachability
-            exclude: {{ .Values.preflight.excludeReachability }}
             get:
               url: {{ .Values.preflight.requiredEndpoint }}
               timeout: 10s
@@ -45,14 +44,13 @@ stringData:
         - http:
             checkName: Replicated App Reachability
             collectorName: replicated-app-reachability
-            exclude: {{ .Values.preflight.excludeReachability }}
             outcomes:
               - pass:
                   when: "statusCode == 200"
                   message: Successfully reached replicated.app. License validation will work correctly.
-              - fail:
+              - warn:
                   when: "error"
-                  message: "Cannot reach replicated.app. Outbound internet access on port 443 is required for license validation. Check firewall or proxy settings."
+                  message: "Cannot reach replicated.app. Outbound internet access on port 443 is required for online license validation. Air-gapped installs can ignore this warning."
               - warn:
                   message: "Received an unexpected response from replicated.app. License validation may be affected."
         - nodeResources:
