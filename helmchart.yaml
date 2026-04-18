@@ -17,8 +17,8 @@ spec:
       pullPolicy: IfNotPresent
     replicated:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "registry.replicated.com/library/replicated-sdk-image" }}'
-        repository: 'repl{{ ReplicatedImageRepository "registry.replicated.com/library/replicated-sdk-image" }}'
+        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/library/replicated-sdk-image" }}'
+        repository: 'repl{{ ReplicatedImageRepository "proxy.replicated.com/library/replicated-sdk-image" }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/postgresql" }}'
