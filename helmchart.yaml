@@ -14,23 +14,21 @@ spec:
     imageProxy:
       host: ""
     image:
-      registry: 'repl{{ ReplicatedImageRegistry "ghcr.io/aa-replicated/gameshelf" }}'
+      registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
+      repository: 'aa-replicated/gameshelf'
       pullPolicy: IfNotPresent
     replicated:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com/library/replicated-sdk-image" }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".replicated.image.registry") }}'
     postgresql:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/postgresql" }}'
-        repository: 'proxy/gameshelf/index.docker.io/bitnami/postgresql'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
       volumePermissions:
         image:
-          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/os-shell" }}'
-          repository: 'proxy/gameshelf/index.docker.io/bitnami/os-shell'
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
     redis:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/redis" }}'
-        repository: 'proxy/gameshelf/index.docker.io/bitnami/redis'
+        registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
   builder:
     postgresql:
       image:
