@@ -19,7 +19,7 @@ spec:
       pullPolicy: IfNotPresent
     replicated:
       image:
-        registry: 'repl{{- if HasLocalRegistry }}{{ LocalRegistryHost }}{{- else }}proxy.replicated.com{{- end }}'
+        registry: 'repl{{ LocalRegistryHost | default "proxy.replicated.com" }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
