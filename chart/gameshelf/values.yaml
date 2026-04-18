@@ -9,13 +9,9 @@ global:
 
 imagePullSecrets: []
 
-imageProxy:
-  host: proxy.replicated.com
-  appSlug: gameshelf
-
 image:
-  registry: "ghcr.io"
-  repository: aa-replicated/gameshelf
+  registry: proxy.replicated.com
+  repository: proxy/gameshelf/ghcr.io/aa-replicated/gameshelf
   tag: ""
   pullPolicy: Always
 
