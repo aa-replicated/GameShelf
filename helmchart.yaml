@@ -20,9 +20,7 @@ spec:
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
-      volumePermissions:
-        image:
-          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+
     redis:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'

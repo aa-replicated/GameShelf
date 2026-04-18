@@ -68,9 +68,6 @@ postgresql:
   enabled: true
   image:
     registry: proxy.replicated.com/proxy/gameshelf/index.docker.io
-  volumePermissions:
-    image:
-      registry: proxy.replicated.com/proxy/gameshelf/index.docker.io
   auth:
     database: gameshelf
     username: gameshelf
