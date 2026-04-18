@@ -19,7 +19,7 @@ spec:
       pullPolicy: IfNotPresent
     replicated:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".replicated.image.registry") }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".replicated.image.registry") true }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
