@@ -22,12 +22,15 @@ spec:
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/postgresql" }}'
+        repository: 'proxy/gameshelf/index.docker.io/bitnami/postgresql'
       volumePermissions:
         image:
           registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/os-shell" }}'
+          repository: 'proxy/gameshelf/index.docker.io/bitnami/os-shell'
     redis:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io/bitnami/redis" }}'
+        repository: 'proxy/gameshelf/index.docker.io/bitnami/redis'
   builder:
     postgresql:
       image:
