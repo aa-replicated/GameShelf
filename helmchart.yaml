@@ -17,16 +17,19 @@ spec:
       registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
       repository: 'aa-replicated/gameshelf'
       pullPolicy: IfNotPresent
+    replicated:
+      image:
+        registry: 'repl{{- if HasLocalRegistry }}{{ LocalRegistryHost }}{{- else }}proxy.replicated.com{{- end }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
-      volumePermissions:
-        image:
-          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
     redis:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
   builder:
+    image:
+      registry: "ghcr.io"
+      repository: "aa-replicated/gameshelf"
     postgresql:
       image:
         registry: "docker.io"
