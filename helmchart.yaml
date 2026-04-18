@@ -17,9 +17,6 @@ spec:
       registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
       repository: 'aa-replicated/gameshelf'
       pullPolicy: IfNotPresent
-    replicated:
-      image:
-        registry: 'repl{{ LocalRegistryHost | default "proxy.replicated.com" }}'
     postgresql:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
@@ -30,6 +27,10 @@ spec:
     image:
       registry: "ghcr.io"
       repository: "aa-replicated/gameshelf"
+    replicated:
+      image:
+        registry: "proxy.replicated.com"
+        repository: "library/replicated-sdk-image"
     postgresql:
       image:
         registry: "docker.io"
