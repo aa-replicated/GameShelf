@@ -13,6 +13,9 @@ spec:
     customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
     imageProxy:
       host: ""
+    service:
+      type: NodePort
+      nodePort: 30081
     image:
       registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
       repository: 'aa-replicated/gameshelf'
