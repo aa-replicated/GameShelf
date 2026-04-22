@@ -24,8 +24,17 @@ spec:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "proxy.replicated.com" true }}'
     postgresql:
+      enabled: 'repl{{ ConfigOption "db_type" | eq "embedded" }}'
+      auth:
+        password: 'repl{{ ConfigOption "db_password_generated" }}'
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+    externalDatabase:
+      host: 'repl{{ ConfigOption "db_host" }}'
+      port: 'repl{{ ConfigOption "db_port" }}'
+      database: 'repl{{ ConfigOption "db_name" }}'
+      username: 'repl{{ ConfigOption "db_user" }}'
+      password: 'repl{{ ConfigOption "db_password" }}'
     redis:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
