@@ -17,6 +17,59 @@ spec:
           type: text
           default: "GameShelf"
           help_text: "The name displayed in the browser title and header."
+    - name: database
+      title: Database
+      items:
+        - name: db_type
+          title: Database
+          type: select_one
+          default: embedded
+          help_text: "Choose Embedded to use the built-in PostgreSQL instance, or External to connect to your own PostgreSQL server."
+          items:
+            - name: embedded
+              title: Embedded (recommended)
+            - name: external
+              title: External PostgreSQL
+        - name: db_password_generated
+          title: Embedded Database Password
+          type: password
+          hidden: true
+          default: '{{repl RandomString 32}}'
+          help_text: "Auto-generated password for the embedded PostgreSQL instance. Generated once at install and preserved across upgrades."
+        - name: db_host
+          title: Database Host
+          type: text
+          when: '{{repl ConfigOption "db_type" | eq "external"}}'
+          required: true
+          help_text: "Hostname or IP address of your PostgreSQL server (e.g. db.example.com)."
+        - name: db_port
+          title: Database Port
+          type: text
+          default: "5432"
+          when: '{{repl ConfigOption "db_type" | eq "external"}}'
+          help_text: "Port your PostgreSQL server listens on. Default is 5432."
+          validation:
+            regex:
+              pattern: '^\d+$'
+              message: "Must be a numeric port number."
+        - name: db_name
+          title: Database Name
+          type: text
+          default: "gameshelf"
+          when: '{{repl ConfigOption "db_type" | eq "external"}}'
+          help_text: "Name of the PostgreSQL database to connect to."
+        - name: db_user
+          title: Database Username
+          type: text
+          default: "gameshelf"
+          when: '{{repl ConfigOption "db_type" | eq "external"}}'
+          help_text: "Username for authenticating with the PostgreSQL database."
+        - name: db_password
+          title: Database Password
+          type: password
+          when: '{{repl ConfigOption "db_type" | eq "external"}}'
+          required: true
+          help_text: "Password for authenticating with the PostgreSQL database."
     - name: branding
       title: Branding
       when: '{{repl LicenseFieldValue "custom_branding_enabled" | eq "true"}}'
