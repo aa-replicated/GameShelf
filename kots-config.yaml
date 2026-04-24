@@ -87,7 +87,6 @@ spec:
           title: Logo URL
           type: text
           default: ""
-          when: '{{repl LicenseFieldValue "custom_branding_enabled" | eq "true"}}'
           help_text: "URL of your organization's logo image (PNG, SVG, or JPEG). Must be publicly accessible. Leave blank to upload a logo via the admin panel instead."
           validation:
             regex:
