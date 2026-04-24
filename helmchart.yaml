@@ -11,6 +11,7 @@ spec:
     siteName: repl{{ ConfigOption `site_name`}}
     siteColor: repl{{ ConfigOption `site_color`}}
     customBrandingEnabled: repl{{ LicenseFieldValue `custom_branding_enabled` }}
+    siteLogoUrl: 'repl{{ ConfigOption "site_logo_url" }}'
     imageProxy:
       host: ""
     service:

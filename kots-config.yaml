@@ -83,3 +83,13 @@ spec:
             regex:
               pattern: '^#[0-9A-Fa-f]{6}$'
               message: "Must be a valid hex color code (e.g. #3B82F6)"
+        - name: site_logo_url
+          title: Logo URL
+          type: text
+          default: ""
+          when: '{{repl LicenseFieldValue "custom_branding_enabled" | eq "true"}}'
+          help_text: "URL of your organization's logo image (PNG, SVG, or JPEG). Must be publicly accessible. Leave blank to upload a logo via the admin panel instead."
+          validation:
+            regex:
+              pattern: '^(https?://.*|)$'
+              message: "Must be a valid URL starting with http:// or https://, or leave blank."
