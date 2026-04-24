@@ -25,7 +25,8 @@
   <header style="background-color: {{ .PrimaryColor }}">
     <nav class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
       <a href="/" class="text-white text-2xl font-bold tracking-tight flex items-center gap-3">
-        {{ if .HasLogo }}<img src="/logo" alt="{{ .SiteName }}" class="h-8 w-auto">{{ end }}
+        {{ if .LogoURL }}<img src="{{ .LogoURL }}" alt="{{ .SiteName }}" class="h-8 w-auto">
+        {{ else if .HasLogo }}<img src="/logo" alt="{{ .SiteName }}" class="h-8 w-auto">{{ end }}
         <span>{{ .SiteName }}</span>
       </a>
       <div class="flex items-center gap-4">
