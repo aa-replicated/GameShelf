@@ -74,3 +74,19 @@ func TestLoad_EnvOverrides(t *testing.T) {
 		t.Errorf("RedisURL: got %q, want %q", cfg.RedisURL, "redis://localhost:6379")
 	}
 }
+
+func TestLoad_SiteLogoURL_Default(t *testing.T) {
+	t.Setenv("SITE_LOGO_URL", "")
+	cfg := Load()
+	if cfg.SiteLogoURL != "" {
+		t.Errorf("SiteLogoURL default: got %q, want empty string", cfg.SiteLogoURL)
+	}
+}
+
+func TestLoad_SiteLogoURL_EnvOverride(t *testing.T) {
+	t.Setenv("SITE_LOGO_URL", "https://example.com/logo.png")
+	cfg := Load()
+	if cfg.SiteLogoURL != "https://example.com/logo.png" {
+		t.Errorf("SiteLogoURL: got %q, want %q", cfg.SiteLogoURL, "https://example.com/logo.png")
+	}
+}

@@ -13,6 +13,7 @@ type Config struct {
 	LocalDev              bool   // LOCAL_DEV=true bypasses SDK gates when SDK_SERVICE_URL is unset
 	SiteColor             string // default primary color (hex), overridden by DB branding settings
 	CustomBrandingEnabled bool   // set by LicenseFieldValue custom_branding_enabled via KOTS
+	SiteLogoURL           string // URL of logo image; set via SITE_LOGO_URL env var from KOTS config
 }
 
 func Load() Config {
@@ -43,5 +44,6 @@ func Load() Config {
 		LocalDev:              os.Getenv("LOCAL_DEV") == "true",
 		SiteColor:             siteColor,
 		CustomBrandingEnabled: os.Getenv("CUSTOM_BRANDING_ENABLED") == "true",
+		SiteLogoURL:           os.Getenv("SITE_LOGO_URL"),
 	}
 }

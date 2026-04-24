@@ -18,6 +18,7 @@ type PageData struct {
 	BackgroundColor string
 	FontFamily      string
 	HasLogo         bool
+	LogoURL         string
 	PageTitle       string
 	Token           string // admin token, preserved across form POSTs
 	PlayerName      string // pre-filled player name from cookie / identity token
@@ -62,6 +63,7 @@ func (s *Server) pageBase(r *http.Request) PageData {
 	}
 
 	data.CustomBrandingEnabled = s.cfg.CustomBrandingEnabled
+	data.LogoURL = s.cfg.SiteLogoURL
 
 	// Populate SDK banners (fail-open: errors are logged and ignored)
 	if s.sdk.Available() {
