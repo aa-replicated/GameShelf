@@ -67,6 +67,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "gameshelf.fullname" . }}
                   key: custom-branding-enabled
+            - name: SITE_LOGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "gameshelf.fullname" . }}
+                  key: site-logo-url
             - name: SDK_SERVICE_URL
               value: "http://replicated:3000"
           livenessProbe:
